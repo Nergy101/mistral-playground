@@ -463,23 +463,29 @@ mistral-large-4</span>
     vision: '/assets/overlay-multimodal-big-eyes.svg',
     tools: '/assets/overlay-tools-gradcap.svg',
   };
-  document.querySelectorAll('.tab').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const tab = (btn as HTMLElement).dataset.tab!;
-      state.tab = tab;
-      document.querySelectorAll('.tab').forEach((b) => {
-        const on = b === btn;
-        b.classList.toggle('active', on);
-        b.setAttribute('aria-selected', String(on));
-      });
-      $('panel-voice').style.display = tab === 'voice' ? 'flex' : 'none';
-      $('panel-vision').style.display = tab === 'vision' ? 'flex' : 'none';
-      $('panel-tools').style.display = tab === 'tools' ? 'flex' : 'none';
-      $('catBubble').textContent = catLines[tab];
-      $('catOverlay').setAttribute('src', catOverlays[tab]);
-      renderHood();
+  const TABS = ['voice', 'vision', 'tools'];
+  function activateTab(tab: string, updateHash = false) {
+    if (!TABS.includes(tab)) tab = 'voice';
+    state.tab = tab;
+    document.querySelectorAll('.tab').forEach((b) => {
+      const on = (b as HTMLElement).dataset.tab === tab;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
     });
+    $('panel-voice').style.display = tab === 'voice' ? 'flex' : 'none';
+    $('panel-vision').style.display = tab === 'vision' ? 'flex' : 'none';
+    $('panel-tools').style.display = tab === 'tools' ? 'flex' : 'none';
+    $('catBubble').textContent = catLines[tab];
+    $('catOverlay').setAttribute('src', catOverlays[tab]);
+    if (updateHash) history.replaceState(null, '', '#' + tab);
+    renderHood();
+  }
+  document.querySelectorAll('.tab').forEach((btn) => {
+    btn.addEventListener('click', () => activateTab((btn as HTMLElement).dataset.tab!, true));
   });
+  // remember the open tab in the URL hash: refresh / shared link / back-forward
+  window.addEventListener('hashchange', () => activateTab(location.hash.replace('#', '')));
+  activateTab(location.hash.replace('#', ''));
 
   // ---------- under the hood ----------
   function sanitize(v: any): any {
