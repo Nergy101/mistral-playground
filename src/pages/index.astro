@@ -361,6 +361,7 @@ mistral-large-4</span>
         </label>
         <button class="btn primary" id="toolsSend" style="min-height:48px;padding:0 20px;font-weight:800;font-size:16px">Send</button>
       </div>
+      <span class="meta">Tool calls are real — the model genuinely picks them. Results are mocked server-side (fake weather, local calculator eval, fake catalogue), so treat the data as demo stand-ins, not a live backend.</span>
       <p class="err" id="toolsErr"></p>
     </div>
   </section>
@@ -866,7 +867,7 @@ mistral-large-4</span>
       }
       for (const ex of data.executed ?? []) {
         log.insertAdjacentHTML('beforeend',
-          `<div class="chat-card"><span style="display:flex;align-items:center;gap:8px"><span class="badge">result</span><span class="meta">mock data</span></span><code style="color:#F2E3CF">${JSON.stringify(ex.result).replace(/</g, '&lt;')}</code></div>`);
+          `<div class="chat-card"><span style="display:flex;align-items:center;gap:8px"><span class="badge">result</span><span class="meta" title="The tool call is real, but this result is simulated server-side — the demo has no live weather or product backend.">mock result · simulated server-side</span></span><code style="color:#F2E3CF">${JSON.stringify(ex.result).replace(/</g, '&lt;')}</code></div>`);
       }
       if (state.jsonMode && data.answerRaw) {
         log.insertAdjacentHTML('beforeend', `<pre class="out">${highlight(data.answerRaw)}</pre>`);
