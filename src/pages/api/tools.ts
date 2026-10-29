@@ -94,6 +94,29 @@ export const POST: APIRoute = async ({ request }) => {
     const assistantMsg = round1.data.choices[0].message;
     const toolCalls = assistantMsg.tool_calls ?? [];
 
+    // No tool calls (e.g. the relevant tool is disabled): the round-1 message
+    // is already the answer. Never send [user, assistant] back — the API
+    // rejects a trailing assistant message without tool results.
+    if (!toolCalls.length) {
+      if (jsonMode) {
+        const round2 = await chatDebug({
+          messages: [{ role: 'user', content: `${prompt}\n\nAnswer the question above as JSON only, with keys "answer" (string) and "tools_used" (empty array — you called no tools).` }],
+          response_format: { type: 'json_object' },
+        });
+        const raw = textOf(round2.data.choices[0].message);
+        let parsed: unknown = null;
+        try { parsed = JSON.parse(raw); } catch { /* leave null */ }
+        return Response.json({
+          prompt, jsonMode, toolCalls, executed: [], answerRaw: raw, answerJson: parsed,
+          debug: { request: round1.debug.request, response: round2.data, usage: round2.debug.usage, latencyMs: round1.debug.latencyMs + round2.debug.latencyMs },
+        });
+      }
+      return Response.json({
+        prompt, jsonMode, toolCalls, executed: [], answer: textOf(assistantMsg),
+        debug: { request: round1.debug.request, response: round1.data, usage: round1.debug.usage, latencyMs: round1.debug.latencyMs },
+      });
+    }
+
     const executed = toolCalls.map((tc: any) => {
       const args = JSON.parse(tc.function.arguments);
       const result = executeTool(tc.function.name, args);

@@ -29,7 +29,17 @@ export async function chat(body: Record<string, unknown>) {
     },
     body: JSON.stringify({ model: CHAT_MODEL, ...body }),
   });
-  if (!res.ok) throw new Error(`Mistral API error ${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    // Surface the API's own error message instead of the raw JSON blob.
+    const txt = await res.text();
+    let msg = `Mistral API error ${res.status}`;
+    try {
+      const j = JSON.parse(txt);
+      if (j?.error?.message) msg = `Mistral API error ${res.status}: ${j.error.message}`;
+      else msg = `Mistral API error ${res.status}: ${txt}`;
+    } catch { msg = `Mistral API error ${res.status}: ${txt}`; }
+    throw new Error(msg);
+  }
   return res.json();
 }
 
