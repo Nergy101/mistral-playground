@@ -124,6 +124,8 @@
   .analyze-btn:disabled { opacity:.6; cursor:wait; }
   .lasagna-btn { align-self:flex-start; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; padding:8px 14px; border:2px solid #000; border-radius:999px; background:var(--bg); color:var(--text); cursor:pointer; box-shadow:3px 3px 0 #000; }
   .lasagna-btn:active { transform:translate(2px,2px); box-shadow:1px 1px 0 #000; }
+  .clear-btn { display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:2px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;color:var(--text-2); }
+  .clear-btn:hover { border-color:var(--accent); color:var(--accent); }
   .preview-wrap { position:relative; align-self:center; max-width:100%; }
   .expand-btn { position:absolute; right:8px; bottom:8px; min-height:44px; padding:0 12px; display:flex; align-items:center; gap:6px; font:600 14px 'Bricolage Grotesque',sans-serif; border:2px solid #000; border-radius:10px; background:var(--yellow); color:var(--ink); box-shadow:3px 3px 0 #000; cursor:pointer; }
   .lightbox { position:fixed; inset:0; z-index:50; background:rgba(10,7,4,.92); display:none; align-items:center; justify-content:center; padding:32px; cursor:zoom-out; }
@@ -350,6 +352,11 @@ mistral-large-4</span>
       <span class="meta">Forces every answer to be valid JSON against your schema. Great for piping straight into code.</span>
     </div>
     <div class="panel col" style="flex:2 1 520px">
+      <div style="display:flex;justify-content:flex-end">
+        <button class="clear-btn" id="clearChat" aria-label="Clear chat" title="Clear chat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"></path></svg>
+        </button>
+      </div>
       <div class="col" id="chatLog" style="gap:12px"></div>
       <div class="loader-row" id="toolsLoader" role="status" style="display:none">
         <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
@@ -842,6 +849,10 @@ mistral-large-4</span>
     state.jsonMode = !state.jsonMode;
     $('jsonSwitch').classList.toggle('on', state.jsonMode);
     $('jsonSwitch').setAttribute('aria-checked', String(state.jsonMode));
+  });
+  $('clearChat').addEventListener('click', () => {
+    $('chatLog').innerHTML = '';
+    $('toolsErr').textContent = '';
   });
   async function sendTools() {
     const input = $('toolsInput') as HTMLInputElement;
