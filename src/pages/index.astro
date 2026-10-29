@@ -439,13 +439,25 @@ mistral-large-4</span>
     { btn: 'Never enough lasagna', say: 'There is no such thing as too much lasagna.' },
     { btn: 'Lasagna over Mondays', say: "I don't hate Mondays. I hate empty plates." },
     { btn: 'Layer up', say: 'Every layer is a promise of more lasagna.' },
+    { btn: 'Mondays are the enemy', say: 'A Monday is just a lasagna with the cheese pulled out.' },
+    { btn: 'I work out', say: 'I do not exercise. I just eat lasagna faster.' },
+    { btn: 'Diet starts tomorrow', say: 'My diet starts tomorrow. Today is lasagna.' },
+    { btn: 'Lasagna is my cardio', say: 'Cardio? I prefer lasagna-o.' },
+    { btn: 'Lasagna is the answer', say: 'Lasagna is the answer. What was the question?' },
+    { btn: 'Get in my belly', say: 'Get in my belly! — every cat, probably.' },
+    { btn: 'Cheese pull ASMR', say: 'The cheese pull is the sound of happiness.' },
+    { btn: 'A lasagna a day', say: 'A lasagna a day keeps the Mondays away.' },
+    { btn: 'Lasagna is a lifestyle', say: 'I do not eat lasagna. Lasagna eats me. Happily.' },
+    { btn: 'I ate 40 lasagnas', say: 'I once ate 40 lasagnas. It was a good day.' },
+    { btn: 'Hate empty ovens', say: 'I hate Mondays. And empty ovens.' },
   ];
-  let lasagnaIdx = 0;
+  let lastLasagna = -1;
   $('lasagnaBtn').addEventListener('click', () => {
-    const p = LASAGNA[lasagnaIdx % LASAGNA.length];
-    lasagnaIdx++;
-    $('lasagnaBtn').textContent = p.btn;
-    $('catBubble').textContent = p.say;
+    let i: number;
+    do { i = Math.floor(Math.random() * LASAGNA.length); } while (i === lastLasagna);
+    lastLasagna = i;
+    $('lasagnaBtn').textContent = LASAGNA[i].btn;
+    $('catBubble').textContent = LASAGNA[i].say;
   });
 
   // ---------- waveform ----------
