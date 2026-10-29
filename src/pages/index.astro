@@ -146,6 +146,29 @@
   footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; align-items:center; font-size:15px; color:var(--muted); }
   .ramp { display:flex; gap:3px; } .ramp div { width:16px; height:16px; }
 
+  @media (max-width: 640px) {
+    .wrap { padding:20px 14px 48px; gap:20px; }
+    header { gap:10px; }
+    .model-pill { font-size:12px; padding:6px 10px; }
+    .docs-btn { padding:8px 12px; font-size:14px; }
+    .hero { padding:24px 20px; border-radius:20px; box-shadow:5px 5px 0 #000; gap:16px; }
+    h1 { font-size:clamp(40px, 12vw, 56px); }
+    .sub { font-size:17px; }
+    .bubble { left:0; top:-8px; max-width:200px; font-size:15px; padding:10px 12px; }
+    .hero-cat { min-height:190px; flex-basis:100%; }
+    .cat-stack { transform:scale(.82); transform-origin:bottom center; margin-top:44px; }
+    .tabs { grid-template-columns:1fr; }
+    .tab { padding:14px 16px; }
+    .panel-row { flex-direction:column; }
+    .panel { padding:18px; border-radius:18px; }
+    .dropzone { padding:16px; }
+    .dropzone img { max-height:200px; }
+    .record-btn { width:84px; height:84px; }
+    .hood-body { grid-template-columns:1fr; }
+    .hood > button { padding:10px 16px; font-size:16px; }
+    .seg button { padding:0 12px; font-size:14px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :global(.hero-sq) { animation:none; }
     .chonk-loader span { animation:chonk-fade 1.2s ease-in-out infinite; }
