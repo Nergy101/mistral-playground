@@ -246,7 +246,7 @@ mistral-large-4</span>
             <button class="pill on" data-act="summary" aria-pressed="true">Summarise</button>
             <button class="pill" data-act="actions" aria-pressed="false">Action items</button>
             <button class="pill" data-act="translate" aria-pressed="false">Translate</button>
-            <select id="translateLang" aria-label="Translate to language" style="font:600 14px 'Bricolage Grotesque',sans-serif;border:2px solid var(--line);border-radius:999px;padding:6px 10px;background:var(--surface);color:var(--text-2)">
+            <select id="translateLang" aria-label="Translate to language" style="display:none;font:600 14px 'Bricolage Grotesque',sans-serif;border:2px solid var(--line);border-radius:999px;padding:6px 10px;background:var(--surface);color:var(--text-2)">
               <option selected>Nederlands</option>
               <option>English</option>
               <option>Français</option>
@@ -618,6 +618,8 @@ mistral-large-4</span>
         x.classList.toggle('on', on);
         x.setAttribute('aria-pressed', String(on));
       });
+      // language dropdown only makes sense for the Translate action
+      ($('translateLang') as HTMLElement).style.display = state.voiceAct === 'translate' ? '' : 'none';
       runVoiceAction();
     });
   });
