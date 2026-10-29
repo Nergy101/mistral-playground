@@ -55,6 +55,13 @@ const MOCK_PRODUCTS = [
   { name: 'Catnip espresso beans', price: 12 },
 ];
 
+// The chat log renders answers as plain text — forbid markdown so the model
+// doesn't wrap things in **bold**, fences, or headers.
+const PLAIN_TEXT_SYSTEM = {
+  role: 'system',
+  content: 'Answer in plain text only. No markdown: no bold, italics, headers, bullet formatting, or code fences. Just plain sentences.',
+};
+
 function executeTool(name: string, args: any): string {
   if (name === 'get_weather') {
     const temp = args.unit === 'celsius' ? 18 : 64;
@@ -87,7 +94,7 @@ export const POST: APIRoute = async ({ request }) => {
     const tools = TOOL_DEFS.filter((t) => wanted.includes(t.function.name));
 
     const round1 = await chatDebug({
-      messages: [{ role: 'user', content: prompt }],
+      messages: [PLAIN_TEXT_SYSTEM, { role: 'user', content: prompt }],
       tools,
       tool_choice: 'auto',
     });
@@ -100,7 +107,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!toolCalls.length) {
       if (jsonMode) {
         const round2 = await chatDebug({
-          messages: [{ role: 'user', content: `${prompt}\n\nAnswer the question above as JSON only, with keys "answer" (string) and "tools_used" (empty array — you called no tools).` }],
+          messages: [PLAIN_TEXT_SYSTEM, { role: 'user', content: `${prompt}\n\nAnswer the question above as JSON only, with keys "answer" (plain text string, no markdown) and "tools_used" (empty array — you called no tools).` }],
           response_format: { type: 'json_object' },
         });
         const raw = textOf(round2.data.choices[0].message);
@@ -124,6 +131,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     const messages = [
+      PLAIN_TEXT_SYSTEM,
       { role: 'user', content: prompt },
       assistantMsg,
       ...toolCalls.map((tc: any) => ({
@@ -138,7 +146,7 @@ export const POST: APIRoute = async ({ request }) => {
       const round2 = await chatDebug({
         messages: [
           ...messages,
-          { role: 'user', content: 'Answer the original question as JSON only, with keys "answer" (string) and "tools_used" (array of tool names you called).' },
+          { role: 'user', content: 'Answer the original question as JSON only, with keys "answer" (plain text string, no markdown) and "tools_used" (array of tool names you called).' },
         ],
         response_format: { type: 'json_object' },
       });
