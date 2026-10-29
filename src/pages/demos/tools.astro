@@ -1,0 +1,71 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Function calling demo">
+  <h1>Function calling &amp; JSON mode</h1>
+  <p class="lede">
+    Type a request in plain English. The model decides which tools to call
+    (<code>get_weather</code>, <code>convert_currency</code>), this server executes them,
+    and the model writes the final answer. The button below also shows strict JSON mode.
+  </p>
+
+  <div class="panel">
+    <textarea id="prompt">What's the weather in Tokyo right now in celsius, and how much is 500 USD in EUR?</textarea>
+    <div class="row">
+      <button id="runBtn">Run with tool calling</button>
+      <button id="jsonBtn" class="secondary">Strict JSON mode</button>
+    </div>
+    <p class="status" id="status"></p>
+  </div>
+
+  <div id="results" style="display:none">
+    <h2>Tool calls emitted by the model</h2>
+    <pre id="toolCalls"></pre>
+    <h2>Executed on the server</h2>
+    <pre id="executed"></pre>
+    <h2>Final answer</h2>
+    <div class="panel"><p id="answer" style="margin:0"></p></div>
+  </div>
+
+  <script>
+    const promptEl = document.getElementById('prompt') as HTMLTextAreaElement;
+    const runBtn = document.getElementById('runBtn') as HTMLButtonElement;
+    const jsonBtn = document.getElementById('jsonBtn') as HTMLButtonElement;
+    const status = document.getElementById('status') as HTMLParagraphElement;
+    const results = document.getElementById('results') as HTMLDivElement;
+
+    async function call(body: object, btn: HTMLButtonElement) {
+      btn.disabled = true;
+      status.className = 'status';
+      status.textContent = 'Calling Mistral API...';
+      try {
+        const res = await fetch('/api/tools', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        if (data.parsed) {
+          document.getElementById('toolCalls')!.textContent = data.raw;
+          document.getElementById('executed')!.textContent = '(json_object response mode — no tools involved)';
+          document.getElementById('answer')!.textContent = 'Parsed successfully as JSON — see raw output above.';
+        } else {
+          document.getElementById('toolCalls')!.textContent = JSON.stringify(data.toolCalls, null, 2);
+          document.getElementById('executed')!.textContent = JSON.stringify(data.executed, null, 2);
+          document.getElementById('answer')!.textContent = data.answer;
+        }
+        results.style.display = 'block';
+        status.textContent = 'Done.';
+      } catch (e: any) {
+        status.textContent = 'Error: ' + e.message;
+        status.className = 'status error';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    runBtn.addEventListener('click', () => call({ prompt: promptEl.value }, runBtn));
+    jsonBtn.addEventListener('click', () => call({ mode: 'json' }, jsonBtn));
+  </script>
+</Layout>

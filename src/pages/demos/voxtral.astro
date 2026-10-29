@@ -1,0 +1,92 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Voxtral transcription demo">
+  <h1>Voxtral speech-to-text</h1>
+  <p class="lede">
+    Upload an audio file or record from your microphone — the server forwards it to
+    <code>voxtral-mini-transcribe-3</code> and returns the transcript.
+  </p>
+
+  <div class="panel">
+    <div class="row">
+      <input type="file" id="audioInput" accept="audio/*" />
+    </div>
+    <div class="row">
+      <button id="recordBtn" class="secondary">● Record</button>
+      <button id="runBtn">Transcribe</button>
+    </div>
+    <p class="status" id="status"></p>
+    <audio id="playback" controls style="display:none; margin-top:1rem; max-width:100%"></audio>
+  </div>
+
+  <div id="results" style="display:none">
+    <h2>Transcript</h2>
+    <div class="panel"><p id="transcript" style="margin:0"></p></div>
+  </div>
+
+  <script>
+    const audioInput = document.getElementById('audioInput') as HTMLInputElement;
+    const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
+    const runBtn = document.getElementById('runBtn') as HTMLButtonElement;
+    const status = document.getElementById('status') as HTMLParagraphElement;
+    const playback = document.getElementById('playback') as HTMLAudioElement;
+    const results = document.getElementById('results') as HTMLDivElement;
+
+    let mediaRecorder: MediaRecorder | null = null;
+    let chunks: Blob[] = [];
+    let recordedBlob: Blob | null = null;
+
+    recordBtn.addEventListener('click', async () => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        recordBtn.textContent = '● Record';
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        chunks = [];
+        recordedBlob = null;
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          recordedBlob = new Blob(chunks, { type: mediaRecorder!.mimeType || 'audio/webm' });
+          playback.src = URL.createObjectURL(recordedBlob);
+          playback.style.display = 'block';
+          stream.getTracks().forEach((t) => t.stop());
+        };
+        mediaRecorder.start();
+        recordBtn.textContent = '■ Stop';
+        status.className = 'status';
+        status.textContent = 'Recording... press Stop when done.';
+      } catch (e: any) {
+        status.className = 'status error';
+        status.textContent = 'Microphone unavailable: ' + e.message;
+      }
+    });
+
+    runBtn.addEventListener('click', async () => {
+      const uploaded = audioInput.files?.[0];
+      const file = uploaded ?? (recordedBlob ? new File([recordedBlob], 'recording.webm', { type: recordedBlob.type || 'audio/webm' }) : null);
+      if (!file) { status.textContent = 'Upload an audio file or record first.'; status.className = 'status error'; return; }
+      runBtn.disabled = true;
+      status.className = 'status';
+      status.textContent = 'Transcribing with Voxtral...';
+      try {
+        const fd = new FormData();
+        fd.append('audio', file);
+        const res = await fetch('/api/transcribe', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        document.getElementById('transcript')!.textContent = data.text || '(no speech detected)';
+        results.style.display = 'block';
+        status.textContent = 'Done.';
+      } catch (e: any) {
+        status.textContent = 'Error: ' + e.message;
+        status.className = 'status error';
+      } finally {
+        runBtn.disabled = false;
+      }
+    });
+  </script>
+</Layout>

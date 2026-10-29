@@ -1,0 +1,885 @@
+---
+// Le Chonk playground — main page. Design per handover: chonky dark theme,
+// pixel cat, three demo tabs, under-the-hood drawer. All API calls proxied
+// server-side via /api/*.
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>mistral.nergy.space — Meet Le Chonk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#14100C; --surface:#1F1812; --surface-2:#2A2017; --code:#0E0A07; --code-2:#1A130D;
+    --line:#4D3B2A; --line-soft:#6B5540; --text:#FFF3E3; --text-2:#E8D6BF; --muted:#CDB9A0;
+    --ink:#1A1208; --accent:#FF8A2A; --yellow:#FFC93C; --btn:#FA520F; --ok:#B8F2C8; --ok-ink:#0E3B1C;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:'Bricolage Grotesque',system-ui,sans-serif; }
+  a { color:var(--yellow); } a:hover { color:#FFE08A; }
+  .wrap { max-width:1240px; margin:0 auto; padding:32px 24px 64px; display:flex; flex-direction:column; gap:28px; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+
+  /* header */
+  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; }
+  .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text); font-weight:800; font-size:20px; letter-spacing:-0.02em; }
+  .brand .nergy { color:var(--accent); }
+  nav { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .model-pill { font-family:'JetBrains Mono',monospace; font-size:13px; padding:8px 12px; border:2px solid var(--line); border-radius:999px; background:var(--surface); color:var(--text-2); }
+  .docs-btn { font-weight:600; font-size:15px; padding:10px 16px; border:2px solid #000; border-radius:12px; background:var(--yellow); color:var(--ink); text-decoration:none; box-shadow:3px 3px 0 #000; }
+
+  /* hero */
+  .hero { display:flex; flex-wrap:wrap; align-items:flex-end; gap:24px 40px; padding:40px; border:3px solid #000; border-radius:28px; background:var(--accent); color:var(--ink); box-shadow:8px 8px 0 #000; position:relative; overflow:hidden; }
+  .hero-sqs { position:absolute; inset:0; pointer-events:none; }
+  :global(.hero-sq) { position:absolute; animation:hero-drift steps(8,end) infinite alternate; }
+  @keyframes hero-drift { 0%{transform:translate(0,0);opacity:.85} 50%{opacity:.45} 100%{transform:translate(var(--dx),var(--dy));opacity:.9} }
+  .hero-copy { flex:999 1 520px; min-width:0; display:flex; flex-direction:column; gap:16px; position:relative; z-index:1; }
+  .chip { align-self:flex-start; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; padding:6px 10px; background:var(--bg); color:var(--text); border-radius:8px; }
+  h1 { margin:0; font-size:clamp(48px,7vw,92px); line-height:.92; font-weight:800; letter-spacing:-0.04em; }
+  .sub { margin:0; font-size:20px; line-height:1.4; max-width:560px; }
+  .hero-cat { flex:1 1 280px; display:flex; justify-content:center; align-items:flex-end; position:relative; z-index:1; min-height:230px; }
+  .bubble { position:absolute; top:-10px; left:-72px; max-width:220px; padding:12px 16px; background:var(--bg); color:var(--text); border:3px solid #000; border-radius:18px 18px 4px 18px; font-weight:600; font-size:17px; line-height:1.25; box-shadow:4px 4px 0 #000; }
+  .cat-stack { position:relative; width:260px; height:190px; margin-top:70px; }
+  .cat-stack img { position:absolute; left:0; top:0; image-rendering:pixelated; }
+
+  /* tabs */
+  .tabs { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+  .tab { display:flex; flex-direction:column; align-items:flex-start; gap:6px; text-align:left; padding:18px 20px; min-height:44px; cursor:pointer; font-family:inherit; border-radius:18px; transition:transform .12s, box-shadow .12s; background:var(--surface); color:var(--text); border:3px solid var(--line); box-shadow:2px 2px 0 #000; }
+  .tab.active { background:var(--accent); color:var(--ink); border:3px solid #000; box-shadow:6px 6px 0 #000; transform:translate(-2px,-2px); }
+  .tab-top { display:flex; align-items:center; gap:10px; font-size:22px; font-weight:800; letter-spacing:-0.02em; }
+  .tab-num { font-family:'JetBrains Mono',monospace; font-size:13px; padding:3px 7px; border-radius:6px; background:var(--surface-2); color:var(--yellow); border:2px solid var(--line); }
+  .tab.active .tab-num { background:var(--bg); color:var(--text); border-color:transparent; }
+  .tab-sub { font-size:15px; font-weight:400; }
+  .tab-model { margin-top:4px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.4; padding:4px 8px; border-radius:6px; overflow-wrap:anywhere; white-space:pre-line; background:var(--code); color:var(--text-2); border:1px solid var(--line); }
+  .tab.active .tab-model { background:var(--bg); color:var(--yellow); border-color:transparent; }
+
+  /* panels */
+  .panel-row { display:flex; flex-wrap:wrap; gap:20px; }
+  .panel { padding:24px; background:var(--surface); border:3px solid var(--line); border-radius:22px; box-shadow:5px 5px 0 #000; }
+  .panel.dark { background:var(--code); border-color:var(--accent); }
+  .panel h2 { margin:0; font-size:22px; font-weight:800; }
+  .panel h3 { margin:0; font-size:18px; font-weight:800; }
+  .col { display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .dropzone { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:24px; background:var(--surface-2); border:2px dashed var(--line-soft); border-radius:16px; cursor:pointer; text-align:center; }
+  .dropzone img { max-width:100%; max-height:260px; border-radius:8px; }
+  .btn { min-height:44px; padding:0 16px; font:600 15px 'Bricolage Grotesque',sans-serif; border:2px solid var(--line-soft); border-radius:12px; background:var(--surface-2); color:var(--text); cursor:pointer; }
+  .btn.primary { border:2px solid #000; background:var(--btn); color:var(--ink); font-weight:800; box-shadow:3px 3px 0 #000; }
+  .btn.yellow { border:2px solid #000; background:var(--yellow); color:var(--ink); font-weight:800; box-shadow:3px 3px 0 #000; }
+  .btn:disabled { opacity:.5; cursor:wait; }
+  .pill { min-height:44px; padding:0 14px; font:600 14px 'Bricolage Grotesque',sans-serif; border-radius:999px; cursor:pointer; border:2px solid var(--line-soft); background:transparent; color:var(--text); }
+  .pill.on { border-color:var(--accent); background:var(--accent); color:var(--ink); }
+  .seg { display:flex; padding:4px; gap:4px; background:var(--surface-2); border-radius:12px; }
+  .seg button { min-height:44px; padding:0 16px; border:none; border-radius:9px; cursor:pointer; font:600 15px 'Bricolage Grotesque',sans-serif; background:transparent; color:var(--text); }
+  .seg button.on { background:var(--accent); color:var(--ink); }
+  .badge { display:inline-flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:13px; padding:6px 10px; background:var(--ok); color:var(--ok-ink); border-radius:8px; font-weight:600; }
+  .tag { font-family:'JetBrains Mono',monospace; font-size:12px; padding:4px 8px; background:var(--yellow); color:var(--ink); border-radius:6px; font-weight:600; }
+  pre.out { margin:0; padding:18px; background:var(--code-2); border-radius:14px; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:15px; line-height:1.65; color:var(--text); white-space:pre-wrap; word-break:break-word; }
+  :global(.k) { color:#FFB07A; } :global(.s) { color:#B8F2C8; } :global(.n) { color:#8FD3FF; } :global(.b) { color:#FFC93C; }
+  .loader-row { display:flex; align-items:center; gap:14px; padding:12px 0; }
+  .chonk-loader { display:flex; align-items:flex-end; gap:4px; height:26px; }
+  .chonk-loader span { display:block; width:14px; height:14px; animation:chonk-hop .9s ease-in-out infinite; }
+  .chonk-loader span:nth-child(1){background:#FFC93C}
+  .chonk-loader span:nth-child(2){background:#FFA234;animation-delay:.1s}
+  .chonk-loader span:nth-child(3){background:#FF8A2A;animation-delay:.2s}
+  .chonk-loader span:nth-child(4){background:#FA520F;animation-delay:.3s}
+  .chonk-loader span:nth-child(5){background:#E1330B;animation-delay:.4s}
+  @keyframes chonk-hop { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-10px)} }
+  .loader-copy { font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--text-2); }
+  .record-btn { width:96px; height:96px; border-radius:50%; border:3px solid #000; background:var(--btn); box-shadow:4px 4px 0 #000; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .record-btn .icon-stop { display:none; }
+  .record-btn.recording { background:#E1330B; animation:rec-pulse 1.1s ease-in-out infinite; }
+  .record-btn.recording .icon-mic { display:none; }
+  .record-btn.recording .icon-stop { display:block; }
+  @keyframes rec-pulse { 0%,100%{ box-shadow:4px 4px 0 #000, 0 0 0 0 rgba(225,51,11,.55);} 50%{ box-shadow:4px 4px 0 #000, 0 0 0 16px rgba(225,51,11,0);} }
+  .rec-status.listening { color:#FF6B6B; font-weight:600; }
+  .rec-status.busy { color:var(--yellow); }
+  .wave { display:flex; align-items:center; gap:4px; height:44px; }
+  .wave :global(div) { width:6px; border-radius:3px; background:#5A4532; }
+  .wave :global(div.played) { background:var(--btn); }
+  select, input[type=text], textarea { min-height:44px; font:400 15px 'Bricolage Grotesque',sans-serif; border:2px solid var(--line-soft); border-radius:12px; padding:0 10px; background:var(--surface-2); color:var(--text); }
+  input[type=text], textarea { width:100%; background:var(--code); }
+  textarea { min-height:80px; padding:10px 12px; resize:vertical; }
+  .tool-label { display:flex; align-items:center; gap:12px; padding:12px 14px; border:2px solid var(--line); border-radius:14px; background:var(--surface-2); cursor:pointer; }
+  .tool-label input { width:22px; height:22px; accent-color:var(--btn); }
+  .chat-user { align-self:flex-end; max-width:80%; padding:12px 16px; background:var(--yellow); color:var(--ink); border-radius:16px 16px 4px 16px; font-size:17px; }
+  .chat-card { display:flex; flex-direction:column; gap:8px; padding:14px; background:var(--code); border:2px solid var(--line); border-radius:14px; font-family:'JetBrains Mono',monospace; font-size:14px; }
+  .chat-assistant { align-self:flex-start; max-width:85%; padding:12px 16px; background:var(--surface-2); border:2px solid var(--line); border-radius:4px 16px 16px 16px; font-size:17px; line-height:1.5; white-space:pre-line; }
+  .switch { position:relative; width:60px; height:34px; flex:none; border-radius:999px; border:3px solid #000; cursor:pointer; padding:0; background:var(--line); }
+  .switch .knob { position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:var(--text); transition:left .15s; }
+  .switch.on { background:var(--accent); } .switch.on .knob { left:29px; background:var(--bg); }
+  .err { color:#FF6B6B; font-size:14px; }
+  .meta { font-size:14px; color:var(--muted); }
+  .sample-strip { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .sample-thumb { width:64px; height:48px; object-fit:cover; border-radius:8px; border:2px solid var(--line-soft); cursor:pointer; padding:0; background:var(--surface-2); }
+  .sample-thumb.on { border-color:var(--accent); box-shadow:3px 3px 0 #000; }
+  .analyze-btn { width:100%; font:600 16px 'Bricolage Grotesque',sans-serif; padding:12px 18px; border:3px solid #000; border-radius:12px; background:var(--yellow); color:var(--ink); cursor:pointer; box-shadow:4px 4px 0 #000; }
+  .analyze-btn:active { transform:translate(2px,2px); box-shadow:2px 2px 0 #000; }
+  .analyze-btn:disabled { opacity:.6; cursor:wait; }
+  .lasagna-btn { align-self:flex-start; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; padding:8px 14px; border:2px solid #000; border-radius:999px; background:var(--bg); color:var(--text); cursor:pointer; box-shadow:3px 3px 0 #000; }
+  .lasagna-btn:active { transform:translate(2px,2px); box-shadow:1px 1px 0 #000; }
+  .preview-wrap { position:relative; align-self:center; max-width:100%; }
+  .expand-btn { position:absolute; right:8px; bottom:8px; min-height:44px; padding:0 12px; display:flex; align-items:center; gap:6px; font:600 14px 'Bricolage Grotesque',sans-serif; border:2px solid #000; border-radius:10px; background:var(--yellow); color:var(--ink); box-shadow:3px 3px 0 #000; cursor:pointer; }
+  .lightbox { position:fixed; inset:0; z-index:50; background:rgba(10,7,4,.92); display:none; align-items:center; justify-content:center; padding:32px; cursor:zoom-out; }
+  .lightbox.open { display:flex; }
+  .lightbox img { max-width:100%; max-height:100%; border:3px solid #000; border-radius:12px; box-shadow:8px 8px 0 #000; image-rendering:auto; cursor:default; }
+  .lightbox .close-btn { position:absolute; top:20px; right:24px; min-height:44px; padding:0 16px; font:800 15px 'Bricolage Grotesque',sans-serif; border:2px solid #000; border-radius:12px; background:var(--btn); color:var(--ink); box-shadow:3px 3px 0 #000; cursor:pointer; }
+
+  /* under the hood */
+  .hood { border:3px solid var(--line); border-radius:22px; background:var(--surface); overflow:hidden; }
+  .hood > button { width:100%; min-height:56px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:10px 22px; background:var(--surface); border:none; cursor:pointer; font:800 18px 'Bricolage Grotesque',sans-serif; color:var(--text); }
+  .hood-meta { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:400; color:var(--muted); }
+  .hood-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); border-top:3px solid var(--line); }
+  .hood-col { padding:18px 22px; min-width:0; }
+  .hood-col.req { background:var(--code); } .hood-col.res { background:var(--code-2); }
+  .hood-col .lbl { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--yellow); }
+  .hood-col pre { margin:8px 0 0; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.6; white-space:pre; color:#F2E3CF; }
+
+  footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; align-items:center; font-size:15px; color:var(--muted); }
+  .ramp { display:flex; gap:3px; } .ramp div { width:16px; height:16px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.hero-sq) { animation:none; }
+    .chonk-loader span { animation:chonk-fade 1.2s ease-in-out infinite; }
+    .record-btn.recording { animation:none; }
+    @keyframes chonk-fade { 0%,100%{opacity:1} 50%{opacity:.35} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+
+  <header>
+    <a class="brand" href="#top">
+      <img src="/assets/logo-mark.svg" width="40" height="21" alt="" aria-hidden="true" />
+      <span>mistral<span class="nergy">.nergy</span>.space</span>
+    </a>
+    <nav>
+      <span class="model-pill">Mistral Large 4 · Le Chonk</span>
+      <a class="docs-btn" href="https://docs.mistral.ai" target="_blank" rel="noopener">Mistral docs</a>
+    </nav>
+  </header>
+
+  <section class="hero" aria-label="Intro">
+    <div class="hero-sqs" aria-hidden="true" id="heroSquares"></div>
+    <div class="hero-copy">
+      <span class="chip">1T params · 1 very large cat</span>
+      <h1>Meet Le Chonk.</h1>
+      <p class="sub">Demos of Mistral's latest models.</p>
+      <button class="lasagna-btn" id="lasagnaBtn">Get Garfielded</button>
+    </div>
+    <div class="hero-cat">
+      <div class="bubble" id="catBubble">I'm all ears. Literally, they're huge.</div>
+      <div class="cat-stack">
+        <img src="/assets/chonk-cat.svg" width="260" height="190" alt="A very chonky pixel-art orange cat" role="img" />
+        <img id="catOverlay" src="/assets/overlay-voxtral-headphones.svg" width="260" height="190" alt="" aria-hidden="true" />
+      </div>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Demos" id="tabs">
+    <button class="tab active" role="tab" aria-selected="true" data-tab="voice">
+      <span class="tab-top"><span class="tab-num">01</span>Voxtral</span>
+      <span class="tab-sub">Speech in, transcript out, then Le Chonk acts on it</span>
+      <span class="tab-model">voxtral-mini-transcribe-3
+mistral-large-4</span>
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="vision">
+      <span class="tab-top"><span class="tab-num">02</span>Multimodal</span>
+      <span class="tab-sub">Image to text, or image to typed JSON</span>
+      <span class="tab-model">mistral-large-4</span>
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="tools">
+      <span class="tab-top"><span class="tab-num">03</span>Tools &amp; JSON</span>
+      <span class="tab-sub">Function calling and strict JSON mode</span>
+      <span class="tab-model">mistral-large-4</span>
+    </button>
+  </div>
+
+  <!-- 01 VOXTRAL -->
+  <section class="panel-row" id="panel-voice" aria-label="Voxtral demo">
+    <div class="panel col" style="flex:1 1 340px">
+      <h2>1 · Talk to it</h2>
+      <div class="dropzone" id="recordZone">
+        <button class="record-btn" id="recordBtn" aria-label="Start recording">
+          <svg class="icon-mic" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1A1208" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"></path></svg>
+          <svg class="icon-stop" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" fill="#1A1208"></rect></svg>
+        </button>
+        <div class="wave" id="wave" aria-hidden="true"></div>
+        <span class="mono rec-status" id="timer" style="font-size:14px;color:var(--text-2)">idle · press the button to start listening</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <label class="btn" style="flex:1 1 140px;display:flex;align-items:center;justify-content:center;cursor:pointer">
+          Upload audio<input type="file" id="audioInput" accept="audio/*" style="display:none" />
+        </label>
+        <label style="flex:1 1 140px;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600">Language
+          <select id="langSelect" style="flex:1">
+            <option value="">Auto-detect</option>
+            <option value="nl">Nederlands</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+      </div>
+      <p class="err" id="voiceErr"></p>
+    </div>
+    <div class="col" style="flex:2 1 520px">
+      <div class="panel">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center">
+          <h3>2 · Voxtral hears</h3>
+          <span class="tag">transcript</span>
+        </div>
+        <p id="transcript" style="margin:12px 0 0;font-size:17px;line-height:1.5;color:#F2E3CF">Nothing yet — record or upload audio on the left.</p>
+      </div>
+      <div style="display:flex;justify-content:center" aria-hidden="true">
+        <svg width="40" height="34" viewBox="0 0 40 34"><path d="M20 2 v 24 M8 16 l 12 14 l 12 -14" fill="none" stroke="#FF8A2A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </div>
+      <div class="panel dark col" style="min-height:180px">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center">
+          <h3>3 · Le Chonk thinks</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:8px" id="voicePills">
+            <button class="pill on" data-act="summary" aria-pressed="true">Summarise</button>
+            <button class="pill" data-act="actions" aria-pressed="false">Action items</button>
+            <button class="pill" data-act="translate" aria-pressed="false">Translate</button>
+            <select id="translateLang" aria-label="Translate to language" style="font:600 14px 'Bricolage Grotesque',sans-serif;border:2px solid var(--line);border-radius:999px;padding:6px 10px;background:var(--surface);color:var(--text-2)">
+              <option selected>Nederlands</option>
+              <option>English</option>
+              <option>Français</option>
+              <option>Deutsch</option>
+              <option>Español</option>
+              <option>Italiano</option>
+              <option>Português</option>
+              <option>Polski</option>
+              <option>Svenska</option>
+              <option>Türkçe</option>
+              <option>Русский</option>
+              <option>العربية</option>
+              <option>日本語</option>
+              <option>中文</option>
+              <option>한국어</option>
+            </select>
+          </div>
+        </div>
+        <div class="loader-row" id="voiceLoader" role="status" style="display:none">
+          <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="loader-copy">Le Chonk is chewing on it…</span>
+        </div>
+        <p id="voiceOut" style="margin:0;font-size:17px;line-height:1.55;white-space:pre-line"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 MULTIMODAL -->
+  <section class="panel-row" id="panel-vision" aria-label="Multimodal demo" style="display:none">
+    <div class="panel col" style="flex:1 1 360px">
+      <h2>Show it something</h2>
+      <div class="dropzone" id="dropzone">
+        <div class="preview-wrap">
+          <img id="imgPreview" src="/samples/lighthouse.jpg" alt="Image preview" />
+          <button class="expand-btn" id="expandBtn" aria-label="Expand image" title="Expand image">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1208" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg>
+            Expand
+          </button>
+        </div>
+        <span class="meta">Drop an image or click to browse — or pick a sample:</span>
+        <div class="sample-strip" id="sampleStrip">
+          <button class="sample-thumb" data-sample="0" aria-label="Sample: receipt"><img src="/samples/receipt.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px" /></button>
+          <button class="sample-thumb" data-sample="1" aria-label="Sample: whiteboard"><img src="/samples/whiteboard.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px" /></button>
+          <button class="sample-thumb" data-sample="2" aria-label="Sample: chart"><img src="/samples/chart.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px" /></button>
+          <button class="sample-thumb on" data-sample="3" aria-label="Sample: photo"><img src="/samples/lighthouse.jpg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px" /></button>
+          <a href="#" id="sampleLink" class="meta">next sample →</a>
+        </div>
+        <input type="file" id="imageInput" accept="image/*" style="display:none" />
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:14px;font-weight:600">Schema preset <span class="meta">(used by Extract JSON)</span></span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px" id="presetPills">
+          <button class="pill" data-preset="receipt" aria-pressed="false">Receipt</button>
+          <button class="pill" data-preset="whiteboard" aria-pressed="false">Whiteboard</button>
+          <button class="pill" data-preset="chart" aria-pressed="false">Chart</button>
+          <button class="pill on" data-preset="image" aria-pressed="true">Image</button>
+        </div>
+      </div>
+      <button class="analyze-btn" id="analyzeBtn">Analyze image</button>
+      <p class="err" id="visionErr"></p>
+    </div>
+    <div class="panel dark col" style="flex:2 1 520px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">
+        <div class="seg" role="group" aria-label="Output mode" id="modeSeg">
+          <button data-mode="describe" aria-pressed="false">Describe</button>
+          <button data-mode="extract" class="on" aria-pressed="true">Extract JSON</button>
+        </div>
+        <span class="badge" id="schemaBadge" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0E3B1C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg>
+          matches schema
+        </span>
+      </div>
+      <pre class="out" id="visionOut" style="display:none"></pre>
+      <p id="visionText" style="margin:0;font-size:18px;line-height:1.6;display:none"></p>
+      <div class="loader-row" id="visionLoader" role="status" style="display:none">
+        <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        <span class="loader-copy">Squinting at your image…</span>
+      </div>
+      <span class="meta">Same image, same model. Flip the toggle to see free text become typed data.</span>
+    </div>
+  </section>
+
+  <!-- 03 TOOLS & JSON -->
+  <section class="panel-row" id="panel-tools" aria-label="Function calling and JSON mode demo" style="display:none">
+    <div class="panel col" style="flex:1 1 300px">
+      <h2>Its toolbox</h2>
+      <label class="tool-label"><input type="checkbox" class="toolChk" value="get_weather" checked />
+        <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="mono" style="font-size:15px;font-weight:600">get_weather</span><span class="meta">Forecast for a city (mocked)</span></span>
+      </label>
+      <label class="tool-label"><input type="checkbox" class="toolChk" value="calculator" checked />
+        <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="mono" style="font-size:15px;font-weight:600">calculator</span><span class="meta">Exact arithmetic, no vibes</span></span>
+      </label>
+      <label class="tool-label"><input type="checkbox" class="toolChk" value="search_products" />
+        <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="mono" style="font-size:15px;font-weight:600">search_products</span><span class="meta">Query a fake product catalogue</span></span>
+      </label>
+      <div style="border-top:3px solid var(--line);margin:4px 0"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:800;font-size:18px;min-height:44px">
+        <span id="jsonModeLabel">JSON mode</span>
+        <button class="switch" id="jsonSwitch" role="switch" aria-checked="false" aria-labelledby="jsonModeLabel"><span class="knob"></span></button>
+      </div>
+      <span class="meta">Forces every answer to be valid JSON against your schema. Great for piping straight into code.</span>
+    </div>
+    <div class="panel col" style="flex:2 1 520px">
+      <div class="col" id="chatLog" style="gap:12px"></div>
+      <div class="loader-row" id="toolsLoader" role="status" style="display:none">
+        <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        <span class="loader-copy">Calling a guy…</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <label style="flex:1;display:flex"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Message</span>
+          <input type="text" id="toolsInput" placeholder="Ask something that needs a tool…" />
+        </label>
+        <button class="btn primary" id="toolsSend" style="min-height:48px;padding:0 20px;font-weight:800;font-size:16px">Send</button>
+      </div>
+      <p class="err" id="toolsErr"></p>
+    </div>
+  </section>
+
+  <!-- UNDER THE HOOD -->
+  <section class="hood">
+    <button id="hoodBtn" aria-expanded="false">
+      <span style="display:flex;align-items:center;gap:10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF8A2A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg>
+        Under the hood
+      </span>
+      <span class="hood-meta" id="hoodMeta">tokens — · latency — · show</span>
+    </button>
+    <div class="hood-body" id="hoodBody" style="display:none">
+      <div class="hood-col req"><span class="lbl">REQUEST</span><pre id="hoodReq">(run a demo first)</pre></div>
+      <div class="hood-col res"><span class="lbl">RESPONSE</span><pre id="hoodRes"></pre></div>
+    </div>
+  </section>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Expanded image">
+    <button class="close-btn" id="lightboxClose">Close ✕</button>
+    <img id="lightboxImg" src="" alt="Expanded image" />
+  </div>
+
+  <footer>
+    <span>A playground by <a href="https://github.com/Nergy101" target="_blank" rel="noopener">Nergy</a> · <a href="https://github.com/Nergy101/mistral-playground" target="_blank" rel="noopener">code</a>. No cats were harmed, several were overfed.</span>
+    <div class="ramp" aria-hidden="true">
+      <div style="background:#FFC93C"></div><div style="background:#FFA234"></div><div style="background:#FF8A2A"></div><div style="background:#FA520F"></div><div style="background:#E1330B"></div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // ---------- shared state ----------
+  const $ = (id: string) => document.getElementById(id)!;
+  const state = {
+    tab: 'voice',
+    transcript: '',
+    voiceAct: 'summary',
+    visionMode: 'extract',
+    preset: 'image',
+    imageFile: null as File | null,
+    jsonMode: false,
+    visionRan: false,
+    debug: {} as Record<string, any>,
+  };
+
+  // ---------- hero squares (positions from the design's sqDefs) ----------
+  const sqDefs: [number, number, number, string, number, number, number, number][] = [
+    [-2, 62, 120, '#FFC93C', 40, -60, 7, 0],
+    [12, -8, 90, '#E1330B', 60, 50, 9, 1.2],
+    [30, 78, 70, '#FFA234', -50, -40, 6, 0.6],
+    [46, 4, 110, '#FA520F', 40, 60, 10, 2],
+    [58, 70, 60, '#FFC93C', 60, -50, 8, 0.3],
+    [70, -14, 140, '#FFA234', -40, 70, 11, 1.6],
+    [86, 52, 100, '#E1330B', -60, -40, 9, 0.9],
+    [94, 8, 70, '#FFC93C', -50, 50, 7, 2.4],
+    [38, 40, 50, '#FFB07A', 50, -60, 8, 1.1],
+  ];
+  $('heroSquares').innerHTML = sqDefs.map(([l, t, size, c, dx, dy, d, delay]) =>
+    `<div class="hero-sq" style="left:${l}%;top:${t}%;width:${size}px;height:${size}px;background:${c};--dx:${dx}px;--dy:${dy}px;animation-duration:${d}s;animation-delay:-${delay}s"></div>`
+  ).join('');
+
+  // ---------- lasagna easter egg ----------
+  const LASAGNA = [
+    { btn: 'Get Garfielded', say: 'Garfield says: feed me lasagna or perish.' },
+    { btn: 'Love Lasagna', say: 'Lasagna is just a hug you can eat.' },
+    { btn: 'Never enough lasagna', say: 'There is no such thing as too much lasagna.' },
+    { btn: 'Lasagna over Mondays', say: "I don't hate Mondays. I hate empty plates." },
+    { btn: 'Layer up', say: 'Every layer is a promise of more lasagna.' },
+  ];
+  let lasagnaIdx = 0;
+  $('lasagnaBtn').addEventListener('click', () => {
+    const p = LASAGNA[lasagnaIdx % LASAGNA.length];
+    lasagnaIdx++;
+    $('lasagnaBtn').textContent = p.btn;
+    $('catBubble').textContent = p.say;
+  });
+
+  // ---------- waveform ----------
+  const heights = [10,18,30,22,38,26,14,34,42,20,28,16,36,24,12,30,40,18,26,34,14,22,32,12];
+  $('wave').innerHTML = heights.map((h) => `<div style="height:${h}px"></div>`).join('');
+
+  // ---------- tabs ----------
+  const catLines: Record<string, string> = {
+    voice: "I'm all ears. Literally, they're huge.",
+    vision: 'Show me the thing. I will judge it.',
+    tools: 'I know a guy. The guy is a function.',
+  };
+  const catOverlays: Record<string, string> = {
+    voice: '/assets/overlay-voxtral-headphones.svg',
+    vision: '/assets/overlay-multimodal-big-eyes.svg',
+    tools: '/assets/overlay-tools-gradcap.svg',
+  };
+  document.querySelectorAll('.tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tab = (btn as HTMLElement).dataset.tab!;
+      state.tab = tab;
+      document.querySelectorAll('.tab').forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', String(on));
+      });
+      $('panel-voice').style.display = tab === 'voice' ? 'flex' : 'none';
+      $('panel-vision').style.display = tab === 'vision' ? 'flex' : 'none';
+      $('panel-tools').style.display = tab === 'tools' ? 'flex' : 'none';
+      $('catBubble').textContent = catLines[tab];
+      $('catOverlay').setAttribute('src', catOverlays[tab]);
+      renderHood();
+    });
+  });
+
+  // ---------- under the hood ----------
+  function sanitize(v: any): any {
+    if (typeof v === 'string' && v.length > 300) return v.slice(0, 120) + `… [${v.length} chars]`;
+    if (Array.isArray(v)) return v.map(sanitize);
+    if (v && typeof v === 'object') {
+      return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === 'image_url' ? { image_url: { url: '[base64 image data]' } } : sanitize(x)]));
+    }
+    return v;
+  }
+  function renderHood() {
+    const d = state.debug[state.tab];
+    if (!d) { $('hoodReq').textContent = '(run a demo first)'; $('hoodRes').textContent = ''; $('hoodMeta').textContent = 'tokens — · latency — · ' + ($('hoodBody').style.display === 'none' ? 'show' : 'hide'); return; }
+    $('hoodReq').textContent = JSON.stringify(sanitize(d.request), null, 2);
+    $('hoodRes').textContent = JSON.stringify(sanitize(d.response), null, 2);
+    const u = d.usage;
+    const tokens = u ? (u.prompt_tokens ?? 0) + (u.completion_tokens ?? 0) : null;
+    $('hoodMeta').textContent = `tokens ${tokens ?? '—'} · latency ${d.latencyMs ?? '—'} ms · ` + ($('hoodBody').style.display === 'none' ? 'show' : 'hide');
+  }
+  $('hoodBtn').addEventListener('click', () => {
+    const open = $('hoodBody').style.display === 'none';
+    $('hoodBody').style.display = open ? 'grid' : 'none';
+    $('hoodBtn').setAttribute('aria-expanded', String(open));
+    renderHood();
+  });
+
+  // ---------- JSON syntax highlighting ----------
+  function highlight(json: string): string {
+    const esc = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return esc.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|\b(true|false)\b|\b-?\d+(\.\d+)?\b/g, (m, str, _g, colon, bool) => {
+      if (str) return colon ? `<span class="k">${str}</span>${colon}` : `<span class="s">${str}</span>`;
+      if (bool) return `<span class="n">${m}</span>`;
+      return `<span class="n">${m}</span>`;
+    }).replace(/[{}]/g, '<span class="b">$&</span>');
+  }
+
+  // ---------- 01 VOXTRAL ----------
+  let mediaRecorder: MediaRecorder | null = null;
+  let chunks: Blob[] = [];
+  let recStart = 0, recTimer: number | undefined, recSeconds = 0, fromRecording = false;
+  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const timerEl = () => $('timer');
+  function setRecState(state: 'idle' | 'listening' | 'busy' | 'stopped') {
+    const btn = $('recordBtn');
+    const t = timerEl();
+    btn.classList.toggle('recording', state === 'listening');
+    btn.setAttribute('aria-label', state === 'listening' ? 'Stop recording' : 'Start recording');
+    t.classList.toggle('listening', state === 'listening');
+    t.classList.toggle('busy', state === 'busy');
+    if (state === 'idle') t.textContent = 'idle · press the button to start listening';
+    if (state === 'listening') t.textContent = `${fmt(Math.floor((Date.now() - recStart) / 1000))} · listening…`;
+    if (state === 'busy') t.textContent = `${fmt(recSeconds)} · stopped listening · transcribing…`;
+    if (state === 'stopped') t.textContent = `${fmt(recSeconds)} · stopped listening · transcript ready`;
+  }
+
+  $('recordBtn').addEventListener('click', async () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop(); // onstop handler takes it from here
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      chunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        clearInterval(recTimer);
+        recSeconds = Math.floor((Date.now() - recStart) / 1000);
+        stream.getTracks().forEach((t) => t.stop());
+        const bars = $('wave').children;
+        for (let i = 0; i < bars.length; i++) bars[i].classList.add('played');
+        fromRecording = true;
+        setRecState('busy');
+        const blob = new Blob(chunks, { type: mediaRecorder!.mimeType || 'audio/webm' });
+        transcribe(new File([blob], 'recording.webm', { type: blob.type }));
+      };
+      mediaRecorder.start();
+      recStart = Date.now();
+      setRecState('listening');
+      recTimer = window.setInterval(() => {
+        setRecState('listening');
+        const bars = $('wave').children;
+        const played = Math.min(bars.length, Math.floor((Date.now() - recStart) / 500) % bars.length + 8);
+        for (let i = 0; i < bars.length; i++) bars[i].classList.toggle('played', i < played);
+      }, 200);
+    } catch (e: any) {
+      $('voiceErr').textContent = 'Microphone unavailable: ' + e.message;
+      setRecState('idle');
+    }
+  });
+
+  $('audioInput').addEventListener('change', () => {
+    const f = ($('audioInput') as HTMLInputElement).files?.[0];
+    if (f) { fromRecording = false; transcribe(f); }
+  });
+
+  async function transcribe(file: File) {
+    $('voiceErr').textContent = '';
+    $('voiceLoader').style.display = 'flex';
+    $('voiceOut').textContent = '';
+    if (mediaRecorder?.state !== 'recording') {
+      // upload path (no recording session): show a plain transcribing state
+      const t = timerEl();
+      t.classList.add('busy');
+      t.classList.remove('listening');
+      t.textContent = 'transcribing uploaded audio…';
+    }
+    try {
+      const fd = new FormData();
+      fd.append('audio', file);
+      const lang = ($('langSelect') as HTMLSelectElement).value;
+      if (lang) fd.append('language', lang);
+      const res = await fetch('/api/transcribe', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      state.transcript = data.text;
+      state.debug.voice = data.debug;
+      $('transcript').textContent = data.text ? `“${data.text}”` : '(no speech detected)';
+      if (fromRecording) setRecState('stopped');
+      else { const t = timerEl(); t.classList.remove('busy'); t.textContent = 'transcript ready · record again or upload'; }
+      renderHood();
+      runVoiceAction();
+    } catch (e: any) {
+      $('voiceErr').textContent = 'Error: ' + e.message;
+      setRecState('idle');
+    } finally {
+      $('voiceLoader').style.display = 'none';
+    }
+  }
+
+  const voiceSystems: Record<string, string> = {
+    summary: 'Summarise the following transcript in 2-3 sentences. Transcript:',
+    actions: 'Extract action items from the following transcript as a checklist with ☐ boxes. Transcript:',
+  };
+  $('translateLang').addEventListener('change', () => {
+    if (state.voiceAct === 'translate') runVoiceAction();
+  });
+  document.querySelectorAll('#voicePills .pill').forEach((p) => {
+    p.addEventListener('click', () => {
+      state.voiceAct = (p as HTMLElement).dataset.act!;
+      document.querySelectorAll('#voicePills .pill').forEach((x) => {
+        const on = x === p;
+        x.classList.toggle('on', on);
+        x.setAttribute('aria-pressed', String(on));
+      });
+      runVoiceAction();
+    });
+  });
+  async function runVoiceAction() {
+    if (!state.transcript) return;
+    $('voiceLoader').style.display = 'flex';
+    $('voiceOut').textContent = '';
+    try {
+      const lang = ($('translateLang') as HTMLSelectElement).selectedOptions[0]?.textContent?.trim() || 'Nederlands';
+      const prompt = state.voiceAct === 'translate'
+        ? `Translate the following transcript into ${lang}. Return only the translation, no commentary. Transcript:\n\n${state.transcript}`
+        : voiceSystems[state.voiceAct] + '\n\n' + state.transcript;
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      state.debug.voice = data.debug;
+      $('voiceOut').textContent = data.answer;
+      renderHood();
+    } catch (e: any) {
+      $('voiceErr').textContent = 'Error: ' + e.message;
+    } finally {
+      $('voiceLoader').style.display = 'none';
+    }
+  }
+
+  // ---------- 02 MULTIMODAL ----------
+  const SAMPLES = [
+    { src: '/samples/receipt.jpg', name: 'receipt.jpg', preset: 'receipt' },
+    { src: '/samples/whiteboard.jpg', name: 'whiteboard.jpg', preset: 'whiteboard' },
+    { src: '/samples/chart.jpg', name: 'chart.jpg', preset: 'chart' },
+    { src: '/samples/lighthouse.jpg', name: 'lighthouse.jpg', preset: 'image' },
+  ];
+  const PRESET_SAMPLE: Record<string, number> = { receipt: 0, whiteboard: 1, chart: 2, image: 3 };
+  let sampleIdx = 3;
+  let previewUrl: string | null = null;
+  let visionRunId = 0;
+
+  // Reset the output area to its idle state and invalidate any in-flight run,
+  // so a stale response can never overwrite newer UI or leave the empty
+  // schema skeleton hanging after an error.
+  function resetVisionOutput() {
+    visionRunId++;
+    $('visionErr').textContent = '';
+    $('visionLoader').style.display = 'none';
+    ($('analyzeBtn') as HTMLButtonElement).disabled = false;
+    $('visionText').style.display = 'none';
+    $('schemaBadge').style.display = 'none';
+    if (state.visionMode === 'extract') {
+      $('visionOut').innerHTML = highlight(JSON.stringify(EMPTY_SCHEMAS[state.preset] ?? EMPTY_SCHEMAS.image, null, 2));
+      $('visionOut').style.display = 'block';
+    } else {
+      $('visionOut').style.display = 'none';
+    }
+  }
+
+  async function loadSample(i: number) {
+    sampleIdx = ((i % SAMPLES.length) + SAMPLES.length) % SAMPLES.length;
+    const s = SAMPLES[sampleIdx];
+    const res = await fetch(s.src);
+    const blob = await res.blob();
+    state.imageFile = new File([blob], s.name, { type: 'image/jpeg' });
+    setPreview(URL.createObjectURL(blob));
+    document.querySelectorAll('.sample-thumb').forEach((b, bi) => b.classList.toggle('on', bi === sampleIdx));
+    resetVisionOutput();
+  }
+  function setPreview(url: string) {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = url;
+    ($('imgPreview') as HTMLImageElement).src = url;
+  }
+  document.querySelectorAll('.sample-thumb').forEach((b) => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      loadSample(Number((b as HTMLElement).dataset.sample));
+    });
+  });
+  $('sampleLink').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); loadSample(sampleIdx + 1); });
+  $('dropzone').addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a,button')) return; // let links/thumbs handle their own clicks
+    ($('imageInput') as HTMLInputElement).click();
+  });
+  $('dropzone').addEventListener('dragover', (e) => e.preventDefault());
+  $('dropzone').addEventListener('drop', (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer?.files?.[0];
+    if (f) setImage(f);
+  });
+  $('imageInput').addEventListener('change', () => {
+    const f = ($('imageInput') as HTMLInputElement).files?.[0];
+    if (f) setImage(f);
+  });
+  function setImage(f: File) {
+    state.imageFile = f;
+    setPreview(URL.createObjectURL(f));
+    document.querySelectorAll('.sample-thumb').forEach((b) => b.classList.remove('on'));
+    resetVisionOutput();
+  }
+
+  // ---------- image lightbox ----------
+  function openLightbox() {
+    const src = ($('imgPreview') as HTMLImageElement).src;
+    if (!src) return;
+    $('lightboxImg').setAttribute('src', src);
+    $('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    $('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  $('expandBtn').addEventListener('click', (e) => { e.stopPropagation(); openLightbox(); });
+  $('lightboxClose').addEventListener('click', closeLightbox);
+  $('lightbox').addEventListener('click', (e) => { if (e.target === $('lightbox')) closeLightbox(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+  document.querySelectorAll('#presetPills .pill').forEach((p) => {
+    p.addEventListener('click', () => {
+      state.preset = (p as HTMLElement).dataset.preset!;
+      document.querySelectorAll('#presetPills .pill').forEach((x) => {
+        const on = x === p;
+        x.classList.toggle('on', on);
+        x.setAttribute('aria-pressed', String(on));
+      });
+      // Presets only apply to Extract JSON — switch to it and load the
+      // matching sample image (analysis starts when Analyze is pressed).
+      if (state.visionMode !== 'extract') {
+        state.visionMode = 'extract';
+        document.querySelectorAll('#modeSeg button').forEach((x) => {
+          const on = (x as HTMLElement).dataset.mode === 'extract';
+          x.classList.toggle('on', on);
+          x.setAttribute('aria-pressed', String(on));
+        });
+      }
+      loadSample(PRESET_SAMPLE[state.preset] ?? 3);
+    });
+  });
+  document.querySelectorAll('#modeSeg button').forEach((b) => {
+    b.addEventListener('click', () => {
+      state.visionMode = (b as HTMLElement).dataset.mode!;
+      document.querySelectorAll('#modeSeg button').forEach((x) => {
+        const on = x === b;
+        x.classList.toggle('on', on);
+        x.setAttribute('aria-pressed', String(on));
+      });
+      // no auto-run: reset the output area to the idle state for this mode
+      resetVisionOutput();
+    });
+  });
+  $('analyzeBtn').addEventListener('click', () => runVision());
+  // Empty schema skeletons shown while the model is working (Extract JSON mode).
+  const EMPTY_SCHEMAS: Record<string, object> = {
+    receipt: { merchant: '', city: '', items: [], total: 0, currency: '' },
+    whiteboard: { title: '', sections: [], action_items: [], people: [] },
+    chart: { chart_type: '', title: '', x_axis: '', y_axis: '', series: [], takeaway: '' },
+    image: { scene_type: '', setting: '', main_subjects: [], visible_text: [], colors: [], estimated_time_of_day: '' },
+  };
+
+  async function runVision() {
+    if (!state.imageFile) { $('visionErr').textContent = 'Pick an image first (or try a sample).'; return; }
+    const myRun = ++visionRunId;
+    state.visionRan = true;
+    $('visionErr').textContent = '';
+    ($('analyzeBtn') as HTMLButtonElement).disabled = true;
+    $('visionLoader').style.display = 'flex';
+    $('visionText').style.display = 'none';
+    $('schemaBadge').style.display = 'none';
+    if (state.visionMode === 'extract') {
+      // show the empty schema immediately; loader sits underneath
+      $('visionOut').innerHTML = highlight(JSON.stringify(EMPTY_SCHEMAS[state.preset] ?? EMPTY_SCHEMAS.image, null, 2));
+      $('visionOut').style.display = 'block';
+    } else {
+      $('visionOut').style.display = 'none';
+    }
+    try {
+      const fd = new FormData();
+      fd.append('image', state.imageFile);
+      fd.append('mode', state.visionMode);
+      fd.append('preset', state.preset);
+      const res = await fetch('/api/vision', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      if (myRun !== visionRunId) return; // a newer run or reset superseded this one
+      state.debug.vision = data.debug;
+      if (data.mode === 'describe') {
+        $('visionText').textContent = data.description;
+        $('visionText').style.display = 'block';
+      } else {
+        const rawOut: string = data.extractionRaw ?? (data.extraction != null ? JSON.stringify(data.extraction, null, 2) : '');
+        $('visionOut').innerHTML = rawOut.trim() ? highlight(rawOut) : '<span class="n">(model returned an empty response)</span>';
+        $('visionOut').style.display = 'block';
+        if (data.extraction) $('schemaBadge').style.display = 'inline-flex';
+      }
+      renderHood();
+    } catch (e: any) {
+      if (myRun !== visionRunId) return;
+      $('visionErr').textContent = 'Error: ' + e.message;
+      // don't leave the empty skeleton hanging — surface the failure in the output area
+      if (state.visionMode === 'extract') {
+        $('visionOut').textContent = '// request failed — ' + e.message;
+        $('visionOut').style.display = 'block';
+      } else {
+        $('visionText').textContent = 'Error: ' + e.message;
+        $('visionText').style.display = 'block';
+      }
+    } finally {
+      if (myRun === visionRunId) {
+        $('visionLoader').style.display = 'none';
+        ($('analyzeBtn') as HTMLButtonElement).disabled = false;
+      }
+    }
+  }
+  // load the default sample preview on startup (analysis starts via the Analyze button)
+  loadSample(3);
+
+  // ---------- 03 TOOLS & JSON ----------
+  $('jsonSwitch').addEventListener('click', () => {
+    state.jsonMode = !state.jsonMode;
+    $('jsonSwitch').classList.toggle('on', state.jsonMode);
+    $('jsonSwitch').setAttribute('aria-checked', String(state.jsonMode));
+  });
+  async function sendTools() {
+    const input = $('toolsInput') as HTMLInputElement;
+    const prompt = input.value.trim();
+    if (!prompt) return;
+    input.value = '';
+    $('toolsErr').textContent = '';
+    const log = $('chatLog');
+    log.insertAdjacentHTML('beforeend', `<div class="chat-user"></div>`);
+    log.lastElementChild!.textContent = prompt;
+    $('toolsLoader').style.display = 'flex';
+    try {
+      const tools = Array.from(document.querySelectorAll('.toolChk:checked')).map((c) => (c as HTMLInputElement).value);
+      const res = await fetch('/api/tools', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, tools, jsonMode: state.jsonMode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      state.debug.tools = data.debug;
+      for (const tc of data.toolCalls ?? []) {
+        log.insertAdjacentHTML('beforeend',
+          `<div class="chat-card"><span style="display:flex;align-items:center;gap:8px"><span class="tag" style="background:var(--accent)">tool_call</span><span class="mono">${tc.function.name}</span></span><code style="color:#FFB07A">${tc.function.arguments.replace(/</g, '&lt;')}</code></div>`);
+      }
+      for (const ex of data.executed ?? []) {
+        log.insertAdjacentHTML('beforeend',
+          `<div class="chat-card"><span style="display:flex;align-items:center;gap:8px"><span class="badge">result</span><span class="meta">mock data</span></span><code style="color:#F2E3CF">${JSON.stringify(ex.result).replace(/</g, '&lt;')}</code></div>`);
+      }
+      if (state.jsonMode && data.answerRaw) {
+        log.insertAdjacentHTML('beforeend', `<pre class="out">${highlight(data.answerRaw)}</pre>`);
+      } else {
+        log.insertAdjacentHTML('beforeend', `<div class="chat-assistant"></div>`);
+        log.lastElementChild!.textContent = data.answer;
+      }
+      renderHood();
+    } catch (e: any) {
+      $('toolsErr').textContent = 'Error: ' + e.message;
+    } finally {
+      $('toolsLoader').style.display = 'none';
+    }
+  }
+  $('toolsSend').addEventListener('click', sendTools);
+  $('toolsInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendTools(); });
+</script>
+</body>
+</html>

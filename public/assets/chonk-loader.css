@@ -1,0 +1,27 @@
+/* Chonk loader — 5 blocks hopping in a wave */
+.chonk-loader{display:flex;align-items:flex-end;gap:4px;height:26px}
+.chonk-loader span{display:block;width:14px;height:14px;animation:chonk-hop .9s ease-in-out infinite}
+.chonk-loader span:nth-child(1){background:#FFC93C}
+.chonk-loader span:nth-child(2){background:#FFA234;animation-delay:.1s}
+.chonk-loader span:nth-child(3){background:#FF8A2A;animation-delay:.2s}
+.chonk-loader span:nth-child(4){background:#FA520F;animation-delay:.3s}
+.chonk-loader span:nth-child(5){background:#E1330B;animation-delay:.4s}
+@keyframes chonk-hop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-10px)}}
+@media (prefers-reduced-motion:reduce){
+  .chonk-loader span{animation:chonk-fade 1.2s ease-in-out infinite}
+  @keyframes chonk-fade{0%,100%{opacity:1}50%{opacity:.35}}
+}
+/* Usage:
+<div role="status" class="chonk-row">
+  <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <span>Le Chonk is chewing on it…</span>
+</div> */
+
+/* Hero background squares — stepped drift */
+.hero-sq{position:absolute;animation:hero-drift steps(8,end) infinite alternate}
+@keyframes hero-drift{
+  0%{transform:translate(0,0);opacity:.85}
+  50%{opacity:.45}
+  100%{transform:translate(var(--dx),var(--dy));opacity:.9}
+}
+@media (prefers-reduced-motion:reduce){.hero-sq{animation:none}}

@@ -1,0 +1,66 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Vision demo">
+  <h1>Vision understanding</h1>
+  <p class="lede">
+    Upload an image — the server sends it to <code>mistral-large-4</code> and returns both a
+    free-form description and structured JSON extracted from the image.
+  </p>
+
+  <div class="panel">
+    <div class="row">
+      <input type="file" id="imageInput" accept="image/*" />
+      <button id="runBtn">Analyze image</button>
+    </div>
+    <img id="preview" class="preview" style="display:none" alt="preview" />
+    <p class="status" id="status"></p>
+  </div>
+
+  <div id="results" style="display:none">
+    <h2>Description</h2>
+    <div class="panel"><p id="description" style="margin:0"></p></div>
+    <h2>Structured extraction</h2>
+    <pre id="extraction"></pre>
+  </div>
+
+  <script>
+    const input = document.getElementById('imageInput') as HTMLInputElement;
+    const btn = document.getElementById('runBtn') as HTMLButtonElement;
+    const status = document.getElementById('status') as HTMLParagraphElement;
+    const preview = document.getElementById('preview') as HTMLImageElement;
+    const results = document.getElementById('results') as HTMLDivElement;
+
+    input.addEventListener('change', () => {
+      const f = input.files?.[0];
+      if (f) {
+        preview.src = URL.createObjectURL(f);
+        preview.style.display = 'block';
+      }
+    });
+
+    btn.addEventListener('click', async () => {
+      const f = input.files?.[0];
+      if (!f) { status.textContent = 'Choose an image first.'; status.className = 'status error'; return; }
+      btn.disabled = true;
+      status.className = 'status';
+      status.textContent = 'Analyzing with mistral-large-4...';
+      try {
+        const fd = new FormData();
+        fd.append('image', f);
+        const res = await fetch('/api/vision', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        document.getElementById('description')!.textContent = data.description;
+        document.getElementById('extraction')!.textContent = data.extraction;
+        results.style.display = 'block';
+        status.textContent = 'Done.';
+      } catch (e: any) {
+        status.textContent = 'Error: ' + e.message;
+        status.className = 'status error';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</Layout>

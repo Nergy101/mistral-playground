@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    image: ghcr.io/nergy101/mistral-playground:latest
+    ports:
+      - "4321:4321"
+    # All runtime config comes from a .env file next to this compose file
+    # (copy .env.example to .env and fill in MISTRAL_API_KEY). The .env is
+    # gitignored and never baked into the image.
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
