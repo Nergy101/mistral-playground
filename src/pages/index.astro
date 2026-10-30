@@ -97,12 +97,31 @@
   .record-btn.recording { background:#E1330B; animation:rec-pulse 1.1s ease-in-out infinite; }
   .record-btn.recording .icon-mic { display:none; }
   .record-btn.recording .icon-stop { display:block; }
+  .mic-btn { width:48px; height:48px; flex:none; border-radius:50%; border:3px solid #000; background:var(--btn); box-shadow:3px 3px 0 #000; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .mic-btn .icon-stop { display:none; }
+  .mic-btn.recording { background:#E1330B; animation:rec-pulse 1.1s ease-in-out infinite; }
+  .mic-btn.recording .icon-mic { display:none; }
+  .mic-btn.recording .icon-stop { display:block; }
   @keyframes rec-pulse { 0%,100%{ box-shadow:4px 4px 0 #000, 0 0 0 0 rgba(225,51,11,.55);} 50%{ box-shadow:4px 4px 0 #000, 0 0 0 16px rgba(225,51,11,0);} }
   .rec-status.listening { color:#FF6B6B; font-weight:600; }
   .rec-status.busy { color:var(--yellow); }
-  .wave { display:flex; align-items:center; gap:4px; height:44px; }
-  .wave :global(div) { width:6px; border-radius:3px; background:#5A4532; }
-  .wave :global(div.played) { background:var(--btn); }
+  /* live transcript — same treatment as the voxtral-demo: confirmed text,
+     dimmed "partial" tail while speaking, blinking caret */
+  .live-transcript { white-space:pre-wrap; word-break:break-word; }
+  .live-transcript .confirmed { color:#F2E3CF; }
+  .live-transcript .partial { color:var(--muted); transition:color .3s ease; }
+  .live-transcript .cursor { display:inline-block; width:9px; height:1.1em; background:var(--accent); vertical-align:-0.15em; margin-left:2px; border-radius:2px; animation:blink 1s step-end infinite; }
+  .live-transcript .tag { color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:13px; }
+  @keyframes blink { 50% { opacity:0; } }
+  /* mic soundwave: the 5 chonk-loader blocks. Grayed out when nothing is
+     listening; colored + jumping (translateY per frequency band) while recording */
+  .wave { display:flex; align-items:flex-end; gap:4px; height:44px; }
+  .wave :global(span) { display:block; width:14px; height:14px; border-radius:3px; background:#5A4532; transition:transform .09s ease-out, background-color .25s ease; will-change:transform; }
+  .wave.live :global(span:nth-child(1)) { background:#FFC93C; }
+  .wave.live :global(span:nth-child(2)) { background:#FFA234; }
+  .wave.live :global(span:nth-child(3)) { background:#FF8A2A; }
+  .wave.live :global(span:nth-child(4)) { background:#FA520F; }
+  .wave.live :global(span:nth-child(5)) { background:#E1330B; }
   select, input[type=text], textarea { min-height:44px; font:400 15px 'Bricolage Grotesque',sans-serif; border:2px solid var(--line-soft); border-radius:12px; padding:0 10px; background:var(--surface-2); color:var(--text); }
   input[type=text], textarea { width:100%; background:var(--code); }
   textarea { min-height:80px; padding:10px 12px; resize:vertical; }
@@ -173,6 +192,8 @@
     :global(.hero-sq) { animation:none; }
     .chonk-loader span { animation:chonk-fade 1.2s ease-in-out infinite; }
     .record-btn.recording { animation:none; }
+    .mic-btn.recording { animation:none; }
+    .live-transcript .cursor { animation:none; }
     @keyframes chonk-fade { 0%,100%{opacity:1} 50%{opacity:.35} }
   }
 </style>
@@ -259,7 +280,7 @@ mistral-large-4</span>
           <h3>2 · Voxtral hears</h3>
           <span class="tag">transcript</span>
         </div>
-        <p id="transcript" style="margin:12px 0 0;font-size:17px;line-height:1.5;color:#F2E3CF">Nothing yet — record or upload audio on the left.</p>
+        <div id="transcript" class="live-transcript" style="margin:12px 0 0;font-size:17px;line-height:1.6;color:#F2E3CF;min-height:1.6em">Nothing yet — record or upload audio on the left.</div>
       </div>
       <div style="display:flex;justify-content:center" aria-hidden="true">
         <svg width="40" height="34" viewBox="0 0 40 34"><path d="M20 2 v 24 M8 16 l 12 14 l 12 -14" fill="none" stroke="#FF8A2A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -385,13 +406,18 @@ mistral-large-4</span>
         <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         <span class="loader-copy">Calling a guy…</span>
       </div>
-      <div style="display:flex;gap:10px;margin-top:4px">
+      <div id="toolsLive" class="live-transcript" style="display:none;margin-top:4px;font-size:15px;line-height:1.5;color:#F2E3CF;min-height:1.5em"></div>
+      <div style="display:flex;gap:10px;margin-top:4px;align-items:center">
         <label style="flex:1;display:flex"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Message</span>
-          <input type="text" id="toolsInput" placeholder="Ask something that needs a tool…" />
+          <input type="text" id="toolsInput" placeholder="Ask something that needs a tool… or dictate it with the mic" />
         </label>
+        <button class="mic-btn" id="toolsMicBtn" aria-label="Dictate message" title="Dictate message">
+          <svg class="icon-mic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1208" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"></path></svg>
+          <svg class="icon-stop" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" fill="#1A1208"></rect></svg>
+        </button>
         <button class="btn primary" id="toolsSend" style="min-height:48px;padding:0 20px;font-weight:800;font-size:16px">Send</button>
       </div>
-      <span class="meta">Tool calls are real — the model genuinely picks them. Results are mocked server-side (fake weather, local calculator eval, fake catalogue), so treat the data as demo stand-ins, not a live backend.</span>
+      <span class="meta">Tool calls are real — the model genuinely picks them. Results are mocked server-side (fake weather, local calculator eval, fake catalogue), so treat the data as demo stand-ins, not a live backend. The mic dictates straight into the box: voice → live transcript → tool call, all linked.</span>
       <p class="err" id="toolsErr"></p>
     </div>
   </section>
@@ -483,9 +509,8 @@ mistral-large-4</span>
     $('catBubble').textContent = LASAGNA[i].say;
   });
 
-  // ---------- waveform ----------
-  const heights = [10,18,30,22,38,26,14,34,42,20,28,16,36,24,12,30,40,18,26,34,14,22,32,12];
-  $('wave').innerHTML = heights.map((h) => `<div style="height:${h}px"></div>`).join('');
+  // ---------- waveform: 5 loader blocks (grayed out until recording starts) ----------
+  $('wave').innerHTML = '<span></span>'.repeat(5);
 
   // ---------- tabs ----------
   const catLines: Record<string, string> = {
@@ -558,11 +583,19 @@ mistral-large-4</span>
   }
 
   // ---------- 01 VOXTRAL ----------
-  let mediaRecorder: MediaRecorder | null = null;
-  let chunks: Blob[] = [];
-  let recStart = 0, recTimer: number | undefined, recSeconds = 0, fromRecording = false;
+  // Realtime dictation, same treatment as the voxtral-demo: mic -> PCM16 16kHz
+  // chunks -> /api/rt/audio -> SSE deltas rendered live (confirmed text +
+  // dimmed partial tail + blinking caret). Uploaded files still use the batch
+  // /api/transcribe path, where the result lands all at once.
+  let rt: {
+    session: string; es: EventSource; mic: { stop: () => void; analyser: AnalyserNode | null } | null;
+    uploadCtrl: AbortController; text: string; recording: boolean;
+    push: (chunk: Uint8Array) => void;
+  } | null = null;
+  let recStart = 0, recTimer: number | undefined, recSeconds = 0, waveRaf = 0, detectedLang = '';
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   const timerEl = () => $('timer');
+  const transcriptEl = () => $('transcript') as HTMLDivElement;
   function setRecState(state: 'idle' | 'listening' | 'busy' | 'stopped') {
     const btn = $('recordBtn');
     const t = timerEl();
@@ -571,63 +604,207 @@ mistral-large-4</span>
     t.classList.toggle('listening', state === 'listening');
     t.classList.toggle('busy', state === 'busy');
     if (state === 'idle') t.textContent = 'idle · press the button to start listening';
-    if (state === 'listening') t.textContent = `${fmt(Math.floor((Date.now() - recStart) / 1000))} · listening…`;
+    if (state === 'listening') t.textContent = `${fmt(Math.floor((Date.now() - recStart) / 1000))} · listening${detectedLang ? ` — detected: ${detectedLang}` : '…'}`;
     if (state === 'busy') t.textContent = `${fmt(recSeconds)} · stopped listening · transcribing…`;
     if (state === 'stopped') t.textContent = `${fmt(recSeconds)} · stopped listening · transcript ready`;
   }
+  function setFinalTranscript(text: string) {
+    const t = transcriptEl();
+    t.innerHTML = '<span class="confirmed"></span>';
+    t.querySelector('.confirmed')!.textContent = text ? `“${text}”` : '(no speech detected)';
+  }
+  // Live render: last ~30 chars dimmed as "partial", the rest confirmed.
+  // Updates the existing spans in place — no innerHTML rebuild, no flicker.
+  function renderLiveTranscript() {
+    const t = transcriptEl();
+    const full = rt?.text ?? '';
+    const split = Math.max(0, full.length - 30);
+    let c = t.querySelector('.confirmed');
+    if (!c) {
+      t.innerHTML = '<span class="confirmed"></span><span class="partial"></span><span class="cursor"></span>';
+      c = t.querySelector('.confirmed')!;
+    }
+    c.textContent = full.slice(0, split);
+    t.querySelector('.partial')!.textContent = full.slice(split);
+  }
+
+  // mic -> PCM s16le 16kHz mono chunks (same capture as the voxtral-demo)
+  async function startMic(onChunk: (c: Uint8Array) => void) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1 } });
+    const ctx = new AudioContext({ sampleRate: 16000 });
+    await ctx.resume(); // ensure running (autoplay policy)
+    const src = ctx.createMediaStreamSource(stream);
+    // analyser taps the same source so the wave blocks can react to real levels
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 64; // 32 frequency bins
+    src.connect(analyser);
+    const worklet = new Blob([`
+      class Pcm extends AudioWorkletProcessor {
+        process(inputs) {
+          const ch = inputs[0]?.[0];
+          if (ch) this.port.postMessage(ch.slice(0), [ch.buffer]);
+          return true;
+        }
+      }
+      registerProcessor('pcm', Pcm);
+    `], { type: 'application/javascript' });
+    await ctx.audioWorklet.addModule(URL.createObjectURL(worklet));
+    const node = new AudioWorkletNode(ctx, 'pcm');
+    node.port.onmessage = (e) => {
+      const f = e.data as Float32Array, out = new Int16Array(f.length);
+      for (let i = 0; i < f.length; i++) out[i] = Math.max(-1, Math.min(1, f[i])) * 0x7fff;
+      onChunk(new Uint8Array(out.buffer));
+    };
+    src.connect(node);
+    return { stop: () => { src.disconnect(); node.disconnect(); ctx.close(); stream.getTracks().forEach((t) => t.stop()); }, analyser };
+  }
+
+  async function startRealtime() {
+    $('voiceErr').textContent = '';
+    const lang = ($('langSelect') as HTMLSelectElement).value;
+    const t = timerEl();
+    t.classList.add('busy'); t.classList.remove('listening');
+    t.textContent = 'connecting…';
+    const res = await fetch(`/api/rt/start?language=${encodeURIComponent(lang)}`, { method: 'POST' });
+    const boot = await res.json();
+    if (!res.ok) throw new Error(boot.error || res.statusText);
+    const session: string = boot.session;
+    rt = { session, es: new EventSource(`/api/rt/events?session=${session}`), mic: null, uploadCtrl: new AbortController(), text: '', recording: true, push: () => {} };
+    // live transcript skeleton: empty confirmed + "Listening…" partial + caret
+    transcriptEl().innerHTML = '<span class="confirmed"></span><span class="partial">Listening…</span><span class="cursor"></span>';
+    rt.es.addEventListener('delta', (e) => {
+      if (!rt) return;
+      rt.text += (JSON.parse(e.data) as { text: string }).text;
+      renderLiveTranscript();
+    });
+    rt.es.addEventListener('language', (e) => {
+      if (!rt) return;
+      detectedLang = (JSON.parse(e.data) as { language: string }).language;
+      setRecState('listening');
+    });
+    rt.es.addEventListener('done', (e) => {
+      if (!rt) return;
+      const { text, usage } = JSON.parse(e.data) as { text?: string; usage?: any };
+      if (text) rt.text = text;
+      finalizeRealtime(usage);
+    });
+    rt.es.addEventListener('interrupted', () => {
+      if (!rt) return;
+      const tEl = transcriptEl();
+      tEl.querySelector('.cursor')?.remove();
+      tEl.insertAdjacentHTML('beforeend', ' <span class="tag">[interrupted — partial kept]</span>');
+      finalizeRealtime();
+    });
+    rt.es.addEventListener('error', (e) => {
+      try { $('voiceErr').textContent = 'Realtime error: ' + JSON.parse(e.data).message; }
+      catch { $('voiceErr').textContent = 'Realtime stream error'; }
+    });
+    // each PCM chunk is its own POST — reliable in all browsers
+    rt.push = (chunk) => {
+      fetch(`/api/rt/audio?session=${session}`, { method: 'POST', body: chunk, signal: rt!.uploadCtrl.signal })
+        .catch((err) => { if (err.name !== 'AbortError') console.warn('audio upload', err); });
+    };
+    rt.mic = await startMic((chunk) => rt!.push(chunk));
+    recStart = Date.now();
+    detectedLang = '';
+    $('wave').classList.add('live'); // blocks light up in color while listening
+    setRecState('listening');
+    recTimer = window.setInterval(() => setRecState('listening'), 200);
+    // wave blocks jump with the mic level: 5 blocks mapped to low->high
+    // frequency bands; silence = all zeros = straight line
+    const freq = new Uint8Array(32);
+    const bins = [1, 3, 6, 10, 15];
+    const waveLoop = () => {
+      if (!rt?.recording) return;
+      const an = rt.mic?.analyser;
+      if (an) {
+        an.getByteFrequencyData(freq);
+        const blocks = $('wave').children;
+        for (let i = 0; i < blocks.length; i++) {
+          const v = freq[bins[i]] / 255; // 0..1
+          (blocks[i] as HTMLElement).style.transform = `translateY(${-Math.round(v * 26)}px)`;
+        }
+      }
+      waveRaf = requestAnimationFrame(waveLoop);
+    };
+    waveRaf = requestAnimationFrame(waveLoop);
+  }
+
+  function stopWave() {
+    clearInterval(recTimer);
+    cancelAnimationFrame(waveRaf);
+    recSeconds = Math.floor((Date.now() - recStart) / 1000);
+    // back to a straight line, grayed out
+    $('wave').classList.remove('live');
+    const blocks = $('wave').children;
+    for (let i = 0; i < blocks.length; i++) (blocks[i] as HTMLElement).style.transform = '';
+  }
+
+  async function stopRealtime() {
+    if (!rt?.recording) return;
+    stopWave();
+    rt.uploadCtrl.abort();
+    rt.mic?.stop();
+    setRecState('busy');
+    // graceful end: server sends input_audio.end, final 'done' arrives on SSE
+    await fetch(`/api/rt/finish?session=${rt.session}`, { method: 'POST' }).catch(() => {});
+    // fallback: if 'done' doesn't arrive within 5s, finalize with what we have
+    setTimeout(() => { if (rt?.recording) finalizeRealtime(); }, 5000);
+  }
+
+  async function interruptRealtime() {
+    if (!rt?.recording) return;
+    stopWave();
+    rt.uploadCtrl.abort();
+    rt.mic?.stop();
+    await fetch(`/api/rt/abort?session=${rt.session}`, { method: 'POST' }).catch(() => {});
+    finalizeRealtime();
+  }
+
+  function finalizeRealtime(usage?: any) {
+    if (!rt) return;
+    const text = rt.text;
+    rt.recording = false;
+    rt.es.close();
+    rt = null;
+    state.transcript = text;
+    setFinalTranscript(text);
+    setRecState('stopped');
+    state.debug.voice = {
+      request: { endpoint: 'realtime websocket · voxtral-mini-transcribe-realtime-3', language: ($('langSelect') as HTMLSelectElement).value || 'auto' },
+      response: { text },
+      usage: usage ?? null,
+      latencyMs: Date.now() - recStart,
+    };
+    renderHood();
+    runVoiceAction();
+  }
 
   $('recordBtn').addEventListener('click', async () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.stop(); // onstop handler takes it from here
-      return;
-    }
+    if (rt?.recording) { stopRealtime(); return; }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      chunks = [];
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
-      mediaRecorder.onstop = () => {
-        clearInterval(recTimer);
-        recSeconds = Math.floor((Date.now() - recStart) / 1000);
-        stream.getTracks().forEach((t) => t.stop());
-        const bars = $('wave').children;
-        for (let i = 0; i < bars.length; i++) bars[i].classList.add('played');
-        fromRecording = true;
-        setRecState('busy');
-        const blob = new Blob(chunks, { type: mediaRecorder!.mimeType || 'audio/webm' });
-        transcribe(new File([blob], 'recording.webm', { type: blob.type }));
-      };
-      mediaRecorder.start();
-      recStart = Date.now();
-      setRecState('listening');
-      recTimer = window.setInterval(() => {
-        setRecState('listening');
-        const bars = $('wave').children;
-        const played = Math.min(bars.length, Math.floor((Date.now() - recStart) / 500) % bars.length + 8);
-        for (let i = 0; i < bars.length; i++) bars[i].classList.toggle('played', i < played);
-      }, 200);
+      await startRealtime();
     } catch (e: any) {
       $('voiceErr').textContent = 'Microphone unavailable: ' + e.message;
       setRecState('idle');
     }
   });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && rt?.recording) interruptRealtime(); });
 
   $('audioInput').addEventListener('change', () => {
     const f = ($('audioInput') as HTMLInputElement).files?.[0];
-    if (f) { fromRecording = false; transcribe(f); }
+    if (f) transcribe(f);
   });
 
   async function transcribe(file: File) {
+    // batch path for uploaded files — no live animation, result lands all at once
     $('voiceErr').textContent = '';
     $('voiceLoader').style.display = 'flex';
     $('voiceOut').textContent = '';
-    if (mediaRecorder?.state !== 'recording') {
-      // upload path (no recording session): show a plain transcribing state
-      const t = timerEl();
-      t.classList.add('busy');
-      t.classList.remove('listening');
-      t.textContent = 'transcribing uploaded audio…';
-    }
+    const t = timerEl();
+    t.classList.add('busy');
+    t.classList.remove('listening');
+    t.textContent = 'transcribing uploaded audio…';
     try {
       const fd = new FormData();
       fd.append('audio', file);
@@ -638,9 +815,10 @@ mistral-large-4</span>
       if (!res.ok) throw new Error(data.error || res.statusText);
       state.transcript = data.text;
       state.debug.voice = data.debug;
-      $('transcript').textContent = data.text ? `“${data.text}”` : '(no speech detected)';
-      if (fromRecording) setRecState('stopped');
-      else { const t = timerEl(); t.classList.remove('busy'); t.textContent = 'transcript ready · record again or upload'; }
+      setFinalTranscript(data.text);
+      const t2 = timerEl();
+      t2.classList.remove('busy');
+      t2.textContent = 'transcript ready · record again or upload';
       renderHood();
       runVoiceAction();
     } catch (e: any) {
@@ -938,6 +1116,110 @@ mistral-large-4</span>
   }
   $('toolsSend').addEventListener('click', sendTools);
   $('toolsInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendTools(); });
+
+  // ---------- 03b voice input for tools (voice -> skills) ----------
+  // Same realtime pipeline as the Voxtral tab: mic -> PCM chunks -> SSE deltas,
+  // rendered live with confirmed/partial/cursor. On stop, the transcript is
+  // dropped into the message box and sent — so voice drives tool calling.
+  let toolsRt: {
+    session: string; es: EventSource; mic: { stop: () => void; analyser: AnalyserNode | null } | null;
+    uploadCtrl: AbortController; text: string; recording: boolean;
+    push: (chunk: Uint8Array) => void;
+  } | null = null;
+
+  function renderToolsLive() {
+    const el = $('toolsLive');
+    const full = toolsRt?.text ?? '';
+    const split = Math.max(0, full.length - 30);
+    let c = el.querySelector('.confirmed');
+    if (!c) {
+      el.innerHTML = '<span class="confirmed"></span><span class="partial"></span><span class="cursor"></span>';
+      c = el.querySelector('.confirmed')!;
+    }
+    c.textContent = full.slice(0, split);
+    el.querySelector('.partial')!.textContent = full.slice(split);
+  }
+
+  async function toolsMicStart() {
+    $('toolsErr').textContent = '';
+    const live = $('toolsLive');
+    live.style.display = 'block';
+    live.innerHTML = '<span class="confirmed"></span><span class="partial">Listening…</span><span class="cursor"></span>';
+    // reuse the language picked in the Voxtral tab — everything is linked
+    const lang = ($('langSelect') as HTMLSelectElement).value;
+    const res = await fetch(`/api/rt/start?language=${encodeURIComponent(lang)}`, { method: 'POST' });
+    const boot = await res.json();
+    if (!res.ok) throw new Error(boot.error || res.statusText);
+    const session: string = boot.session;
+    toolsRt = { session, es: new EventSource(`/api/rt/events?session=${session}`), mic: null, uploadCtrl: new AbortController(), text: '', recording: true, push: () => {} };
+    $('toolsMicBtn').classList.add('recording');
+    toolsRt.es.addEventListener('delta', (e) => {
+      if (!toolsRt) return;
+      toolsRt.text += (JSON.parse(e.data) as { text: string }).text;
+      renderToolsLive();
+    });
+    toolsRt.es.addEventListener('done', (e) => {
+      if (!toolsRt) return;
+      const { text } = JSON.parse(e.data) as { text?: string };
+      if (text) toolsRt.text = text;
+      toolsMicFinalize();
+    });
+    toolsRt.es.addEventListener('interrupted', () => { if (toolsRt) toolsMicFinalize(); });
+    toolsRt.es.addEventListener('error', (e) => {
+      try { $('toolsErr').textContent = 'Realtime error: ' + JSON.parse(e.data).message; }
+      catch { $('toolsErr').textContent = 'Realtime stream error'; }
+    });
+    toolsRt.push = (chunk) => {
+      fetch(`/api/rt/audio?session=${session}`, { method: 'POST', body: chunk, signal: toolsRt!.uploadCtrl.signal })
+        .catch((err) => { if (err.name !== 'AbortError') console.warn('audio upload', err); });
+    };
+    toolsRt.mic = await startMic((chunk) => toolsRt!.push(chunk));
+  }
+
+  function toolsMicFinalize() {
+    if (!toolsRt) return;
+    const text = toolsRt.text.trim();
+    toolsRt.recording = false;
+    toolsRt.es.close();
+    toolsRt = null;
+    $('toolsMicBtn').classList.remove('recording');
+    const live = $('toolsLive');
+    if (text) {
+      live.innerHTML = '<span class="confirmed"></span>';
+      live.querySelector('.confirmed')!.textContent = `“${text}”`;
+      ($('toolsInput') as HTMLInputElement).value = text;
+      sendTools(); // voice -> skills: the transcript becomes the tool-calling prompt
+    } else {
+      live.innerHTML = '<span class="partial">(no speech detected — try again)</span>';
+    }
+  }
+
+  async function toolsMicStop() {
+    if (!toolsRt?.recording) return;
+    toolsRt.uploadCtrl.abort();
+    toolsRt.mic?.stop();
+    await fetch(`/api/rt/finish?session=${toolsRt.session}`, { method: 'POST' }).catch(() => {});
+    // fallback: if 'done' doesn't arrive within 5s, finalize with what we have
+    setTimeout(() => { if (toolsRt?.recording) toolsMicFinalize(); }, 5000);
+  }
+
+  $('toolsMicBtn').addEventListener('click', async () => {
+    if (toolsRt?.recording) { toolsMicStop(); return; }
+    try {
+      await toolsMicStart();
+    } catch (e: any) {
+      $('toolsErr').textContent = 'Microphone unavailable: ' + e.message;
+      $('toolsMicBtn').classList.remove('recording');
+      toolsRt = null;
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !toolsRt?.recording) return;
+    toolsRt.uploadCtrl.abort();
+    toolsRt.mic?.stop();
+    fetch(`/api/rt/abort?session=${toolsRt.session}`, { method: 'POST' }).catch(() => {});
+    toolsMicFinalize();
+  });
 </script>
 </body>
 </html>
