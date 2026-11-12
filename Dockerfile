@@ -5,14 +5,14 @@
 #   docker run -p 4321:4321 -e MISTRAL_API_KEY=... ghcr.io/nergy101/mistral-playground:latest
 # Optional: NERGY_DAILY_TOKEN_CAP (default 1000000), NERGY_MAX_TOKENS (default 1500)
 
-FROM node:22-alpine AS build
+FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:22-alpine AS runtime
+FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=4321
