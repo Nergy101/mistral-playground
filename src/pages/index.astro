@@ -656,7 +656,13 @@ mistral-large-4</span>
       onChunk(new Uint8Array(out.buffer));
     };
     src.connect(node);
-    return { stop: () => { src.disconnect(); node.disconnect(); ctx.close(); stream.getTracks().forEach((t) => t.stop()); }, analyser };
+    // The audio graph is pulled from the destination: without this connection
+    // the worklet's process() never fires and no PCM is captured. Zero gain
+    // keeps the mic out of the speakers.
+    const mute = ctx.createGain();
+    mute.gain.value = 0;
+    node.connect(mute).connect(ctx.destination);
+    return { stop: () => { src.disconnect(); node.disconnect(); mute.disconnect(); ctx.close(); stream.getTracks().forEach((t) => t.stop()); }, analyser };
   }
 
   async function startRealtime() {
