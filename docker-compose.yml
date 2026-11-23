@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    image: ghcr.io/nergy101/mistral-playground:latest
+    image: ghcr.io/nergy101/mistral-nergy:latest
     ports:
       - "4321:4321"
     # All runtime config comes from a .env file next to this compose file

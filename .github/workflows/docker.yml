@@ -1,5 +1,5 @@
 # Build and push the demo site image to GHCR on every push to main.
-# The live host pulls ghcr.io/nergy101/mistral-playground:latest and restarts
+# The live host pulls ghcr.io/nergy101/mistral-nergy:latest and restarts
 # the container (docker compose), so merging to main ships the site.
 # MISTRAL_API_KEY is never baked into the image — it is passed at runtime.
 name: docker
@@ -23,7 +23,7 @@ jobs:
 
       # GHCR requires lowercase repository names; github.repository_owner is "Nergy101"
       - name: Resolve image tag
-        run: echo "IMAGE=ghcr.io/$(echo '${{ github.repository_owner }}' | tr 'A-Z' 'a-z')/mistral-playground:latest" >> "$GITHUB_ENV"
+        run: echo "IMAGE=ghcr.io/$(echo '${{ github.repository_owner }}' | tr 'A-Z' 'a-z')/mistral-nergy:latest" >> "$GITHUB_ENV"
 
       - uses: docker/login-action@v3
         with:

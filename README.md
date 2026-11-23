@@ -54,12 +54,12 @@ Compose passes every variable from the `.env` sitting next to
 
 ### Docker / GHCR
 
-Prebuilt image: `ghcr.io/nergy101/mistral-playground:latest`
+Prebuilt image: `ghcr.io/nergy101/mistral-nergy:latest`
 
 ```
-docker build -t ghcr.io/nergy101/mistral-playground:latest .
-docker push ghcr.io/nergy101/mistral-playground:latest
-docker run -p 4321:4321 -e MISTRAL_API_KEY=... ghcr.io/nergy101/mistral-playground:latest
+docker build -t ghcr.io/nergy101/mistral-nergy:latest .
+docker push ghcr.io/nergy101/mistral-nergy:latest
+docker run -p 4321:4321 -e MISTRAL_API_KEY=... ghcr.io/nergy101/mistral-nergy:latest
 ```
 
 `MISTRAL_API_KEY` is a runtime env var only — never baked into the image

@@ -2,7 +2,7 @@
 # Multi-stage build for the mistral.nergy.space demo site (Astro 5 + @astrojs/node, standalone).
 #
 # MISTRAL_API_KEY is NOT baked into the image — pass it at runtime:
-#   docker run -p 4321:4321 -e MISTRAL_API_KEY=... ghcr.io/nergy101/mistral-playground:latest
+#   docker run -p 4321:4321 -e MISTRAL_API_KEY=... ghcr.io/nergy101/mistral-nergy:latest
 # Optional: NERGY_DAILY_TOKEN_CAP (default 1000000), NERGY_MAX_TOKENS (default 1500)
 
 FROM node:22-bookworm-slim AS build
