@@ -29,9 +29,14 @@
 
   /* header */
   header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; }
+  .header-left { display:flex; flex-wrap:wrap; align-items:center; gap:16px; }
   .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text); font-weight:800; font-size:20px; letter-spacing:-0.02em; }
   .brand .nergy { color:var(--accent); }
   nav { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .top-nav { display:flex; gap:4px; padding:4px; background:var(--surface); border:2px solid var(--line); border-radius:12px; }
+  .top-nav a { padding:8px 16px; border-radius:9px; font-weight:600; font-size:15px; color:var(--text-2); text-decoration:none; }
+  .top-nav a:hover { color:var(--text); }
+  .top-nav a.on { background:var(--accent); color:var(--ink); }
   .model-pill { font-family:'JetBrains Mono',monospace; font-size:13px; padding:8px 12px; border:2px solid var(--line); border-radius:999px; background:var(--surface); color:var(--text-2); }
   .docs-btn { font-weight:600; font-size:15px; padding:10px 16px; border:2px solid #000; border-radius:12px; background:var(--yellow); color:var(--ink); text-decoration:none; box-shadow:3px 3px 0 #000; }
 
@@ -202,11 +207,17 @@
 <div class="wrap" id="top">
 
   <header>
-    <a class="brand" href="#top">
-      <img src="/assets/logo-mark.svg" width="40" height="21" alt="" aria-hidden="true" />
-      <span>mistral<span class="nergy">.nergy</span>.space</span>
-    </a>
-    <nav>
+    <div class="header-left">
+      <a class="brand" href="#top">
+        <img src="/assets/logo-mark.svg" width="40" height="21" alt="" aria-hidden="true" />
+        <span>mistral<span class="nergy">.nergy</span>.space</span>
+      </a>
+      <div class="top-nav" role="navigation" aria-label="Site">
+        <a href="/" class="on" aria-current="page">Basics</a>
+        <a href="/genui">Gen-UI</a>
+      </div>
+    </div>
+    <nav aria-label="Links">
       <span class="model-pill">Mistral Large 4 · Le Chonk</span>
       <a class="docs-btn" href="https://docs.mistral.ai" target="_blank" rel="noopener">Mistral docs</a>
     </nav>

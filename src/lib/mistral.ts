@@ -27,6 +27,7 @@ export async function chat(body: Record<string, unknown>) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${getApiKey()}`,
     },
+    // body.model overrides the default when a demo needs a different model
     body: JSON.stringify({ model: CHAT_MODEL, ...body }),
   });
   if (!res.ok) {

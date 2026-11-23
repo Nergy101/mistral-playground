@@ -1,0 +1,418 @@
+---
+// Gen-UI page — Generative UI demo: Mistral models (Large 4 / Small 4) compose
+// live interfaces in OpenUI Lang, rendered by the @openuidev renderer.
+// "Basic" mode renders the raw OpenUI Lang stream; "Advanced" mode speaks the
+// A2UI v1.0 agent-to-renderer protocol (@openuidev/a2ui) with OpenUI Lang
+// component payloads. All model calls are proxied server-side via /api/genui.
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gen-UI · mistral.nergy.space</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/vendor/openui/openui-styles.css" />
+<style>
+  :root {
+    --bg:#14100C; --surface:#1F1812; --surface-2:#2A2017; --code:#0E0A07; --code-2:#1A130D;
+    --line:#4D3B2A; --line-soft:#6B5540; --text:#FFF3E3; --text-2:#E8D6BF; --muted:#CDB9A0;
+    --ink:#1A1208; --accent:#FF8A2A; --yellow:#FFC93C; --btn:#FA520F;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:'Bricolage Grotesque',system-ui,sans-serif; }
+  a { color:var(--yellow); } a:hover { color:#FFE08A; }
+  .wrap { max-width:1240px; margin:0 auto; padding:32px 24px 64px; display:flex; flex-direction:column; gap:28px; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+
+  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; }
+  .header-left { display:flex; flex-wrap:wrap; align-items:center; gap:16px; }
+  .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text); font-weight:800; font-size:20px; letter-spacing:-0.02em; }
+  .brand .nergy { color:var(--accent); }
+  nav { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .top-nav { display:flex; gap:4px; padding:4px; background:var(--surface); border:2px solid var(--line); border-radius:12px; }
+  .top-nav a { padding:8px 16px; border-radius:9px; font-weight:600; font-size:15px; color:var(--text-2); text-decoration:none; }
+  .top-nav a:hover { color:var(--text); }
+  .top-nav a.on { background:var(--accent); color:var(--ink); }
+  .docs-btn { font-weight:600; font-size:15px; padding:10px 16px; border:2px solid #000; border-radius:12px; background:var(--yellow); color:var(--ink); text-decoration:none; box-shadow:3px 3px 0 #000; }
+
+  .hero { display:flex; flex-wrap:wrap; align-items:flex-end; gap:24px 40px; padding:40px; border:3px solid #000; border-radius:28px; background:var(--accent); color:var(--ink); box-shadow:8px 8px 0 #000; }
+  .hero-copy { flex:1 1 480px; min-width:0; display:flex; flex-direction:column; gap:16px; }
+  .chip { align-self:flex-start; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; padding:6px 10px; background:var(--bg); color:var(--text); border-radius:8px; }
+  h1 { margin:0; font-size:clamp(44px,6vw,76px); line-height:.92; font-weight:800; letter-spacing:-0.04em; }
+  .sub { margin:0; font-size:20px; line-height:1.4; max-width:560px; }
+
+  .panel { padding:24px; background:var(--surface); border:3px solid var(--line); border-radius:22px; box-shadow:5px 5px 0 #000; }
+  .panel.dark { background:var(--code); border-color:var(--accent); }
+  .panel h2 { margin:0; font-size:22px; font-weight:800; }
+  .col { display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .label { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); }
+  .seg { display:flex; padding:4px; gap:4px; background:var(--surface-2); border-radius:12px; }
+  .seg button { min-height:44px; padding:0 16px; border:none; border-radius:9px; cursor:pointer; font:600 15px 'Bricolage Grotesque',sans-serif; background:transparent; color:var(--text); }
+  .seg button.on { background:var(--accent); color:var(--ink); }
+  .seg button small { display:block; font:400 12px 'JetBrains Mono',monospace; opacity:.75; }
+  .pill { min-height:40px; padding:0 14px; font:600 14px 'Bricolage Grotesque',sans-serif; border-radius:999px; cursor:pointer; border:2px solid var(--line-soft); background:transparent; color:var(--text); }
+  .pill:hover { border-color:var(--accent); }
+  .pill.a2ui { border-color:var(--accent); color:var(--accent); }
+  .pill.a2ui:hover { background:var(--accent); color:var(--ink); }
+  .pill-divider { flex-basis:100%; display:flex; align-items:center; gap:12px; margin-top:6px; font:600 12px 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); }
+  .pill-divider::before, .pill-divider::after { content:''; flex:1; height:2px; background:var(--line); }
+  .btn { min-height:44px; padding:0 16px; font:600 15px 'Bricolage Grotesque',sans-serif; border:2px solid var(--line-soft); border-radius:12px; background:var(--surface-2); color:var(--text); cursor:pointer; }
+  .btn.primary { border:2px solid #000; background:var(--btn); color:var(--ink); font-weight:800; box-shadow:3px 3px 0 #000; }
+  .btn:disabled { opacity:.5; cursor:wait; }
+  input[type=text] { min-height:48px; width:100%; font:400 15px 'Bricolage Grotesque',sans-serif; border:2px solid var(--line-soft); border-radius:12px; padding:0 12px; background:var(--code); color:var(--text); }
+  .err { color:#FF6B6B; font-size:14px; margin:0; }
+  .meta { font-size:14px; color:var(--muted); }
+  .tag { font-family:'JetBrains Mono',monospace; font-size:12px; padding:4px 8px; background:var(--yellow); color:var(--ink); border-radius:6px; font-weight:600; }
+  pre.out { margin:0; padding:18px; background:var(--code-2); border-radius:14px; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.6; color:#F2E3CF; white-space:pre-wrap; word-break:break-word; }
+  .loader-row { display:flex; align-items:center; gap:14px; padding:12px 0; }
+  .chonk-loader { display:flex; align-items:flex-end; gap:4px; height:26px; }
+  .chonk-loader span { display:block; width:14px; height:14px; animation:chonk-hop .9s ease-in-out infinite; }
+  .chonk-loader span:nth-child(1){background:#FFC93C}
+  .chonk-loader span:nth-child(2){background:#FFA234;animation-delay:.1s}
+  .chonk-loader span:nth-child(3){background:#FF8A2A;animation-delay:.2s}
+  .chonk-loader span:nth-child(4){background:#FA520F;animation-delay:.3s}
+  .chonk-loader span:nth-child(5){background:#E1330B;animation-delay:.4s}
+  @keyframes chonk-hop { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-10px)} }
+  .loader-copy { font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--text-2); }
+
+  /* the generated surface: OpenUI renderer mounts here */
+  #surface { min-height:120px; padding:20px; background:var(--code); border:2px dashed var(--line-soft); border-radius:16px; }
+  #surface:empty::after { content:'The generated interface appears here — ask for a card, form, chart or dashboard.'; color:var(--muted); font-size:15px; }
+  #surface .openui-surface, #surface > div { color:var(--text); }
+
+  /* under the hood */
+  .hood { border:3px solid var(--line); border-radius:22px; background:var(--surface); overflow:hidden; }
+  .hood > button { width:100%; min-height:56px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:10px 22px; background:var(--surface); border:none; cursor:pointer; font:800 18px 'Bricolage Grotesque',sans-serif; color:var(--text); }
+  .hood-meta { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:400; color:var(--muted); }
+  .hood-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); border-top:3px solid var(--line); }
+  .hood-col { padding:18px 22px; min-width:0; }
+  .hood-col.req { background:var(--code); } .hood-col.res { background:var(--code-2); }
+  .hood-col .lbl { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--yellow); }
+  .hood-col pre { margin:8px 0 0; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.6; white-space:pre; color:#F2E3CF; }
+
+  footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; align-items:center; font-size:15px; color:var(--muted); }
+  .ramp { display:flex; gap:3px; } .ramp div { width:16px; height:16px; }
+
+  @media (max-width: 640px) {
+    .wrap { padding:20px 14px 48px; gap:20px; }
+    .hero { padding:24px 20px; border-radius:20px; box-shadow:5px 5px 0 #000; }
+    h1 { font-size:clamp(40px, 12vw, 56px); }
+    .sub { font-size:17px; }
+    .panel { padding:18px; border-radius:18px; }
+    .seg button { padding:0 12px; font-size:14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+
+  <header>
+    <div class="header-left">
+      <a class="brand" href="/">
+        <img src="/assets/logo-mark.svg" width="40" height="21" alt="" aria-hidden="true" />
+        <span>mistral<span class="nergy">.nergy</span>.space</span>
+      </a>
+      <div class="top-nav" role="navigation" aria-label="Site">
+        <a href="/">Basics</a>
+        <a href="/genui" class="on" aria-current="page">Gen-UI</a>
+      </div>
+    </div>
+    <nav aria-label="Links">
+      <a class="docs-btn" href="https://www.openui.com/docs" target="_blank" rel="noopener">OpenUI docs</a>
+    </nav>
+  </header>
+
+  <section class="hero" aria-label="Intro">
+    <div class="hero-copy">
+      <span class="chip">Generative UI · OpenUI Lang + A2UI</span>
+      <h1>Gen-UI.</h1>
+      <p class="sub">Ask in plain words — a Mistral model composes a live interface instead of a wall of text. Rendered with <a href="https://www.openui.com/docs" target="_blank" rel="noopener" style="color:var(--ink);text-decoration:underline">OpenUI</a>.</p>
+    </div>
+  </section>
+
+  <section class="panel col" aria-label="Settings">
+    <h2>Settings</h2>
+    <div class="row" style="justify-content:space-between">
+      <span class="label">Model</span>
+      <div class="seg" role="group" aria-label="Model" id="modelSeg">
+        <button data-model="mistral-small-2603" class="on" aria-pressed="true">Small 4<small>mistral-small-2603</small></button>
+        <button data-model="mistral-large-4" aria-pressed="false">Large 4<small>mistral-large-4</small></button>
+      </div>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <span class="label">Agent integration</span>
+      <div class="seg" role="group" aria-label="Agent integration" id="modeSeg">
+        <button data-mode="basic" class="on" aria-pressed="true">Basic<small>openuidev renderer</small></button>
+        <button data-mode="advanced" aria-pressed="false">Advanced<small>A2UI agent integration</small></button>
+      </div>
+    </div>
+    <span class="meta" id="modeHint">Basic: the model returns raw OpenUI Lang, rendered directly by the @openuidev renderer. Advanced: the model speaks the A2UI v1.0 protocol (createSurface + updateComponents envelopes), processed by the @openuidev/a2ui client before rendering.</span>
+  </section>
+
+  <section class="panel col" aria-label="Prompt">
+    <div class="row">
+      <label style="flex:1;display:flex"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Describe the interface you want</span>
+        <input type="text" id="promptInput" placeholder="e.g. A card with the weather in Utrecht and a refresh button…" />
+      </label>
+      <button class="btn primary" id="sendBtn" style="min-height:48px;padding:0 20px;font-weight:800;font-size:16px">Generate</button>
+    </div>
+    <div class="row" id="samplePills">
+      <button class="pill" data-sample="A card showing the weather in Utrecht right now, with a refresh button">Weather card</button>
+      <button class="pill" data-sample="A signup form with name and email fields and a submit button that tells you what happens next">Signup form</button>
+      <button class="pill" data-sample="A bar chart comparing the context windows of Mistral Large 4 and Small 4">Model chart</button>
+      <button class="pill" data-sample="Tabs with three lasagna facts and a button to hear another one">Lasagna tabs</button>
+      <div class="pill-divider" aria-hidden="true">Auto-play · A2UI multi-message flows</div>
+      <button class="pill a2ui" data-sample="Plan a 3-day trip to Lisbon: send a loading card first, then replace it with a day-by-day itinerary card, then add a budget bar chart below it">A2UI: trip planner (progressive)</button>
+      <button class="pill a2ui" data-sample="A checkout flow in three steps: first a cart card with items and a checkout button, then replace it with a payment form, then with a confirmation card — use the buttons to move between steps">A2UI: checkout steps</button>
+      <button class="pill a2ui" data-sample="Quiz me on lasagna history: show one question card at a time with two answer buttons, each button sends your answer back and you reply with the next question or the final score">A2UI: lasagna quiz</button>
+      <button class="pill a2ui" data-sample="A dashboard for my cat: a header, a metric row with three stats, a bar chart of weekly kibble consumption, and a table of meals — send it as several updateComponents messages">A2UI: cat dashboard</button>
+    </div>
+    <p class="err" id="genErr"></p>
+  </section>
+
+  <section class="panel dark col" aria-label="Generated interface">
+    <div class="row" style="justify-content:space-between">
+      <h2>Generated UI</h2>
+      <span class="tag" id="genTag">idle</span>
+    </div>
+    <div class="loader-row" id="genLoader" role="status" style="display:none">
+      <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <span class="loader-copy" id="loaderCopy">Le Chonk is composing your UI…</span>
+    </div>
+    <div id="surface"></div>
+  </section>
+
+  <section class="hood">
+    <button id="hoodBtn" aria-expanded="false">
+      <span style="display:flex;align-items:center;gap:10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF8A2A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg>
+        Under the hood
+      </span>
+      <span class="hood-meta" id="hoodMeta">tokens — · latency — · show</span>
+    </button>
+    <div class="hood-body" id="hoodBody" style="display:none">
+      <div class="hood-col req"><span class="lbl">RAW GENERATION (OpenUI Lang / A2UI NDJSON)</span><pre id="hoodRaw">(generate something first)</pre></div>
+      <div class="hood-col res"><span class="lbl">API REQUEST / RESPONSE</span><pre id="hoodRes"></pre></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Generative UI with <a href="https://www.openui.com/docs" target="_blank" rel="noopener">OpenUI</a> + Mistral · API keys stay server-side</span>
+    <div class="ramp" aria-hidden="true">
+      <div style="background:#FFC93C"></div><div style="background:#FFA234"></div><div style="background:#FF8A2A"></div><div style="background:#FA520F"></div><div style="background:#E1330B"></div>
+    </div>
+  </footer>
+</div>
+
+<script is:inline src="/vendor/openui/openui-bundle.min.js"></script>
+<script>
+  import { createA2UIClient } from '@openuidev/a2ui';
+  const $ = (id: string) => document.getElementById(id)!;
+  const state = { model: 'mistral-small-2603', mode: 'basic' as 'basic' | 'advanced', debug: null as any, busy: false };
+  // model ids: Large 4 = mistral-large-4, Small 4 = mistral-small-2603
+
+  // ---------- settings ----------
+  const MODE_HINTS: Record<string, string> = {
+    basic: 'Basic: the model returns raw OpenUI Lang, rendered directly by the @openuidev renderer.',
+    advanced: 'Advanced: the model speaks the A2UI v1.0 protocol (createSurface + updateComponents envelopes), processed by the @openuidev/a2ui client before rendering.',
+  };
+  document.querySelectorAll('#modelSeg button').forEach((b) => {
+    b.addEventListener('click', () => {
+      state.model = (b as HTMLElement).dataset.model!;
+      document.querySelectorAll('#modelSeg button').forEach((x) => {
+        const on = x === b;
+        x.classList.toggle('on', on);
+        x.setAttribute('aria-pressed', String(on));
+      });
+    });
+  });
+  document.querySelectorAll('#modeSeg button').forEach((b) => {
+    b.addEventListener('click', () => {
+      state.mode = (b as HTMLElement).dataset.mode as 'basic' | 'advanced';
+      document.querySelectorAll('#modeSeg button').forEach((x) => {
+        const on = x === b;
+        x.classList.toggle('on', on);
+        x.setAttribute('aria-pressed', String(on));
+      });
+      $('modeHint').textContent = MODE_HINTS[state.mode];
+    });
+  });
+  document.querySelectorAll('#samplePills .pill').forEach((p) => {
+    p.addEventListener('click', () => {
+      ($('promptInput') as HTMLInputElement).value = (p as HTMLElement).dataset.sample!;
+      send();
+    });
+  });
+  $('sendBtn').addEventListener('click', send);
+  $('promptInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+
+  // ---------- OpenUI renderer (vendored @openuidev/browser-bundle) ----------
+  function openui() {
+    const w = window as any;
+    if (!w.__OpenUI) throw new Error('OpenUI renderer bundle failed to load (/vendor/openui/openui-bundle.min.js)');
+    return w.__OpenUI as { React: any; createRoot: any; Renderer: any; openuiChatLibrary: any };
+  }
+  let surfaceHost: HTMLElement | null = null;
+  function renderLang(lang: string, streaming = false) {
+    const { React, createRoot, Renderer, openuiChatLibrary } = openui();
+    // fresh host each render so the previous React root never lingers
+    const host = document.createElement('div');
+    host.className = 'openui-surface';
+    const old = $('surface');
+    surfaceHost = host;
+    old.replaceChildren(host);
+    const root = createRoot(host);
+    root.render(React.createElement(Renderer, {
+      response: lang,
+      library: openuiChatLibrary,
+      isStreaming: streaming,
+      onAction: (event: any) => {
+        // @ToAssistant("...") buttons send their message back as a new prompt.
+        // The bundle emits type "continue_conversation" with message at top level.
+        const isToAssistant = event?.type === 'continue_conversation' || event?.type === 'ToAssistant';
+        if (isToAssistant) {
+          const msg = event.humanFriendlyMessage ?? event.message ?? event.params?.message ?? event.params?.text ?? '';
+          if (msg) { ($('promptInput') as HTMLInputElement).value = String(msg); send(); }
+        }
+      },
+    }));
+  }
+
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  // ---------- Advanced mode: A2UI v1.0 agent integration ----------
+  // Tolerant salvage for NDJSON lines that fail JSON.parse (usually unescaped
+  // quotes inside the OpenUI Lang strings): pull the components array body and
+  // split it on `identifier =` statement boundaries instead of quotes.
+  function salvageStatements(line: string): string[] {
+    const m = line.match(/"components"\s*:\s*\[(.*)\]/s);
+    if (!m) return [];
+    let inner = m[1].replace(/^\s*"/, '').replace(/"\s*$/, '');
+    const starts: number[] = [];
+    const re = /[A-Za-z_]\w*\s*=/g;
+    let mm: RegExpExecArray | null;
+    while ((mm = re.exec(inner))) starts.push(mm.index);
+    const out: string[] = [];
+    for (let i = 0; i < starts.length; i++) {
+      const end = i + 1 < starts.length ? starts[i + 1] : inner.length;
+      let s = inner.slice(starts[i], end).replace(/[\s",\\]+$/, '').trim();
+      if (s) out.push(s);
+    }
+    return out;
+  }
+
+  // Process the model's NDJSON envelopes with the official @openuidev/a2ui
+  // client, then render the surface's merged OpenUI Lang source.
+  // Play the A2UI NDJSON stream message by message so the flow is followable:
+  // each envelope is processed and the surface re-rendered after a short pause.
+  async function playA2UI(raw: string): Promise<void> {
+    const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean);
+    const { openuiChatLibrary } = openui();
+    const schema = openuiChatLibrary.toJSONSchema?.() ?? openuiChatLibrary.schema;
+    const rootName = openuiChatLibrary.root ?? 'Card';
+    let client: any = null;
+    try {
+      client = createA2UIClient({
+        schema,
+        rootName,
+        rendererCapabilities: { 'v1.0': { supportedCatalogIds: ['com.openui:chat'] } },
+        onMessage: () => {}, // renderer->agent messages (actions) are handled via onAction above
+      });
+    } catch { client = null; }
+    const salvaged: string[] = [];
+    let usedClient = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const last = i === lines.length - 1;
+      let msg: any = null;
+      try { msg = JSON.parse(line); } catch { /* salvaged below */ }
+      if (client && msg) {
+        await client.process(msg);
+        const src: string = client.getSurface?.('main')?.source ?? '';
+        if (src.trim()) { renderLang(src, !last); usedClient = true; }
+      } else {
+        const comps = msg?.updateComponents?.components;
+        if (Array.isArray(comps)) salvaged.push(...comps.filter((c: any) => typeof c === 'string'));
+        else salvaged.push(...salvageStatements(line));
+        if (salvaged.length) renderLang(salvaged.join('\n'), !last);
+      }
+      const kind = msg ? (Object.keys(msg).find((k) => k !== 'version') ?? 'message') : 'updateComponents (salvaged)';
+      $('genTag').textContent = `A2UI · message ${i + 1}/${lines.length} · ${kind}`;
+      if (!last) await sleep(800);
+    }
+    // final settled render
+    const finalSrc = usedClient ? (client.getSurface?.('main')?.source ?? '') : salvaged.join('\n');
+    if (!finalSrc.trim()) throw new Error('No A2UI updateComponents found — the model returned no usable surface.');
+    renderLang(finalSrc, false);
+    $('genTag').textContent = `A2UI · ${lines.length} messages${usedClient ? '' : ' · fallback merge'} · ${state.model}`;
+  }
+
+  // Basic mode: reveal the OpenUI Lang line by line so the composition is
+  // visible while it "streams" in (isStreaming lets the renderer tolerate the
+  // incomplete trailing syntax).
+  async function playLang(raw: string): Promise<void> {
+    const lines = raw.split('\n');
+    const CHUNK = 2;
+    for (let i = CHUNK; i < lines.length; i += CHUNK) {
+      renderLang(lines.slice(0, i).join('\n'), true);
+      $('genTag').textContent = `OpenUI Lang · ${i}/${lines.length} lines`;
+      await sleep(500);
+    }
+    renderLang(raw, false);
+    $('genTag').textContent = `OpenUI Lang · ${state.model}`;
+  }
+
+  // ---------- send ----------
+  async function send() {
+    const input = $('promptInput') as HTMLInputElement;
+    const prompt = input.value.trim();
+    if (!prompt || state.busy) return;
+    state.busy = true;
+    $('genErr').textContent = '';
+    $('genLoader').style.display = 'flex';
+    $('loaderCopy').textContent = state.mode === 'advanced' ? 'Agent is sending A2UI messages…' : 'Le Chonk is composing your UI…';
+    ($('sendBtn') as HTMLButtonElement).disabled = true;
+    $('genTag').textContent = `${state.mode === 'advanced' ? 'A2UI' : 'OpenUI Lang'} · ${state.model}`;
+    try {
+      const res = await fetch('/api/genui', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, model: state.model, mode: state.mode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      state.debug = data.debug;
+      $('hoodRaw').textContent = data.raw;
+      $('hoodRes').textContent = JSON.stringify({ request: data.debug?.request, usage: data.debug?.usage, latencyMs: data.debug?.latencyMs }, null, 2);
+      const u = data.debug?.usage;
+      $('hoodMeta').textContent = `tokens ${u ? (u.prompt_tokens ?? 0) + (u.completion_tokens ?? 0) : '—'} · latency ${data.debug?.latencyMs ?? '—'} ms · ${$('hoodBody').style.display === 'none' ? 'show' : 'hide'}`;
+      if (data.mode === 'advanced') await playA2UI(data.raw);
+      else await playLang(data.raw);
+    } catch (e: any) {
+      $('genErr').textContent = 'Error: ' + e.message;
+      $('genTag').textContent = 'failed';
+    } finally {
+      state.busy = false;
+      $('genLoader').style.display = 'none';
+      ($('sendBtn') as HTMLButtonElement).disabled = false;
+    }
+  }
+
+  // ---------- under the hood ----------
+  $('hoodBtn').addEventListener('click', () => {
+    const open = $('hoodBody').style.display === 'none';
+    $('hoodBody').style.display = open ? 'grid' : 'none';
+    $('hoodBtn').setAttribute('aria-expanded', String(open));
+    const u = state.debug?.usage;
+    $('hoodMeta').textContent = `tokens ${u ? (u.prompt_tokens ?? 0) + (u.completion_tokens ?? 0) : '—'} · latency ${state.debug?.latencyMs ?? '—'} ms · ${open ? 'hide' : 'show'}`;
+  });
+</script>
+</body>
+</html>
