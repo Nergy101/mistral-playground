@@ -66,6 +66,7 @@
   td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
   tr:last-child td { border-bottom:none; }
   td .mono { font-size:13px; color:var(--yellow); }
+  th:nth-child(2), td:nth-child(2) { white-space:nowrap; }
 
   .changelog { display:flex; flex-direction:column; gap:0; }
   .cl-entry { display:flex; gap:16px; padding:12px 0; border-bottom:1px solid var(--line); }
@@ -125,25 +126,25 @@
       <tbody>
         <tr>
           <td><strong>01 · Voxtral</strong></td>
-          <td><a href="/">/</a></td>
+          <td><a class="mono" href="/">/</a></td>
           <td><span class="mono">voxtral-mini-transcribe-3</span><br><span class="mono">mistral-large-4</span></td>
           <td>Record or upload audio → live transcript → summarise, action items, or translate into 15 languages</td>
         </tr>
         <tr>
           <td><strong>02 · Multimodal</strong></td>
-          <td><a href="/">/</a></td>
+          <td><a class="mono" href="/">/</a></td>
           <td><span class="mono">mistral-large-4</span></td>
           <td>Image → free-text description, or schema-constrained JSON extraction (receipt / whiteboard / chart / generic image presets)</td>
         </tr>
         <tr>
           <td><strong>03 · Tools &amp; JSON</strong></td>
-          <td><a href="/">/</a></td>
+          <td><a class="mono" href="/">/</a></td>
           <td><span class="mono">mistral-large-4</span></td>
           <td>Natural language → tool calls executed server-side → final answer, plus strict JSON mode</td>
         </tr>
         <tr>
           <td><strong>Gen-UI</strong></td>
-          <td><a href="/genui">/genui</a></td>
+          <td><a class="mono" href="/genui">/genui</a></td>
           <td><span class="mono">mistral-small-2603</span><br><span class="mono">mistral-large-4</span></td>
           <td>Generative UI: the model composes a live interface in OpenUI Lang (basic) or A2UI v1.0 (advanced), rendered by OpenUI</td>
         </tr>
@@ -159,9 +160,6 @@
       Per-request output is clamped to <strong>1,500 tokens</strong> by default.
       When the cap is hit, endpoints return <span class="mono">429</span> with an explanatory message.
       Check live status at <a href="/api/budget"><span class="mono">GET /api/budget</span></a>.
-    </p>
-    <p class="meta" style="margin:0;font-size:15px">
-      Override via env: <span class="mono">NERGY_DAILY_TOKEN_CAP</span>, <span class="mono">NERGY_MAX_TOKENS</span>.
     </p>
   </section>
 
