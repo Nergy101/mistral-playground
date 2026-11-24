@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#14100C"/>
+  <rect x="60" y="60" width="1080" height="510" rx="40" fill="#FF8A2A" stroke="#000" stroke-width="8"/>
+  <text x="100" y="200" font-family="monospace" font-size="28" font-weight="bold" fill="#14100C">1T params · 1 very large cat</text>
+  <text x="100" y="330" font-family="sans-serif" font-size="96" font-weight="900" fill="#14100C" letter-spacing="-4">Meet Le Chonk.</text>
+  <text x="100" y="410" font-family="sans-serif" font-size="36" fill="#14100C">Live demos of the Mistral API — mistral.nergy.space</text>
+  <g transform="translate(820, 180)">
+    <rect x="0" y="60" width="260" height="190" fill="#FF8A2A"/>
+    <polygon points="20,60 60,10 100,60" fill="#E1330B"/>
+    <polygon points="160,60 200,10 240,60" fill="#E1330B"/>
+    <rect x="30" y="100" width="50" height="50" fill="#14100C"/>
+    <rect x="180" y="100" width="50" height="50" fill="#14100C"/>
+    <polygon points="110,140 150,140 130,170" fill="#14100C"/>
+    <rect x="40" y="180" width="180" height="8" fill="#14100C"/>
+    <rect x="60" y="196" width="140" height="8" fill="#14100C"/>
+  </g>
+</svg>

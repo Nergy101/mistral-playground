@@ -1,0 +1,223 @@
+---
+// About / changelog page — documents the demos, models, token budget, and
+// recent changes. Styled to match the chonky dark theme of the main pages.
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>About · mistral.nergy.space</title>
+<meta name="description" content="What mistral.nergy.space is, which Mistral models power each demo, the server-side token budget, and recent changes." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://mistral.nergy.space/about" />
+<meta property="og:title" content="About · mistral.nergy.space" />
+<meta property="og:description" content="Demos, models, token budget, and changelog for the Le Chonk playground." />
+<meta property="og:image" content="https://mistral.nergy.space/og-image.svg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="About · mistral.nergy.space" />
+<meta name="twitter:description" content="Demos, models, token budget, and changelog for the Le Chonk playground." />
+<meta name="twitter:image" content="https://mistral.nergy.space/og-image.svg" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#14100C; --surface:#1F1812; --surface-2:#2A2017; --code:#0E0A07; --code-2:#1A130D;
+    --line:#4D3B2A; --line-soft:#6B5540; --text:#FFF3E3; --text-2:#E8D6BF; --muted:#CDB9A0;
+    --ink:#1A1208; --accent:#FF8A2A; --yellow:#FFC93C; --btn:#FA520F;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:'Bricolage Grotesque',system-ui,sans-serif; }
+  a { color:var(--yellow); } a:hover { color:#FFE08A; }
+  .wrap { max-width:1240px; margin:0 auto; padding:32px 24px 64px; display:flex; flex-direction:column; gap:28px; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+
+  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; }
+  .header-left { display:flex; flex-wrap:wrap; align-items:center; gap:16px; }
+  .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text); font-weight:800; font-size:20px; letter-spacing:-0.02em; }
+  .brand .nergy { color:var(--accent); }
+  .top-nav { display:flex; gap:4px; padding:4px; background:var(--surface); border:2px solid var(--line); border-radius:12px; }
+  .top-nav a { padding:8px 16px; border-radius:9px; font-weight:600; font-size:15px; color:var(--text-2); text-decoration:none; }
+  .top-nav a:hover { color:var(--text); }
+  .top-nav a.on { background:var(--accent); color:var(--ink); }
+  .docs-btn { font-weight:600; font-size:15px; padding:10px 16px; border:2px solid #000; border-radius:12px; background:var(--yellow); color:var(--ink); text-decoration:none; box-shadow:3px 3px 0 #000; }
+
+  .hero { display:flex; flex-wrap:wrap; align-items:flex-end; gap:24px 40px; padding:40px; border:3px solid #000; border-radius:28px; background:var(--accent); color:var(--ink); box-shadow:8px 8px 0 #000; }
+  .hero-copy { flex:1 1 480px; min-width:0; display:flex; flex-direction:column; gap:16px; }
+  .chip { align-self:flex-start; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; padding:6px 10px; background:var(--bg); color:var(--text); border-radius:8px; }
+  h1 { margin:0; font-size:clamp(44px,6vw,76px); line-height:.92; font-weight:800; letter-spacing:-0.04em; }
+  .sub { margin:0; font-size:20px; line-height:1.4; max-width:560px; }
+
+  .panel { padding:24px; background:var(--surface); border:3px solid var(--line); border-radius:22px; box-shadow:5px 5px 0 #000; }
+  .panel h2 { margin:0 0 12px; font-size:22px; font-weight:800; }
+  .panel h3 { margin:0 0 8px; font-size:18px; font-weight:800; }
+  .col { display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .meta { font-size:14px; color:var(--muted); }
+  .tag { font-family:'JetBrains Mono',monospace; font-size:12px; padding:4px 8px; background:var(--yellow); color:var(--ink); border-radius:6px; font-weight:600; }
+
+  table { width:100%; border-collapse:collapse; font-size:15px; }
+  th { text-align:left; font-family:'JetBrains Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); padding:8px 12px; border-bottom:2px solid var(--line); }
+  td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+  td .mono { font-size:13px; color:var(--yellow); }
+
+  .changelog { display:flex; flex-direction:column; gap:0; }
+  .cl-entry { display:flex; gap:16px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .cl-entry:last-child { border-bottom:none; }
+  .cl-date { flex:none; width:100px; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding-top:2px; }
+  .cl-body { flex:1; min-width:0; font-size:15px; line-height:1.5; }
+  .cl-body .mono { font-size:13px; color:var(--yellow); }
+
+  footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; align-items:center; font-size:15px; color:var(--muted); }
+  .ramp { display:flex; gap:3px; } .ramp div { width:16px; height:16px; }
+
+  @media (max-width: 640px) {
+    .wrap { padding:20px 14px 48px; gap:20px; }
+    .hero { padding:24px 20px; border-radius:20px; box-shadow:5px 5px 0 #000; }
+    h1 { font-size:clamp(40px, 12vw, 56px); }
+    .sub { font-size:17px; }
+    .panel { padding:18px; border-radius:18px; }
+    .cl-date { width:70px; font-size:12px; }
+    th, td { padding:8px 6px; font-size:14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+
+  <header>
+    <div class="header-left">
+      <a class="brand" href="/">
+        <img src="/assets/logo-mark.svg" width="40" height="21" alt="" aria-hidden="true" />
+        <span>mistral<span class="nergy">.nergy</span>.space</span>
+      </a>
+      <div class="top-nav" role="navigation" aria-label="Site">
+        <a href="/">Basics</a>
+        <a href="/genui">Gen-UI</a>
+        <a href="/about" class="on" aria-current="page">About</a>
+      </div>
+    </div>
+    <nav aria-label="Links">
+      <a class="docs-btn" href="https://docs.mistral.ai" target="_blank" rel="noopener">Mistral docs</a>
+    </nav>
+  </header>
+
+  <section class="hero" aria-label="Intro">
+    <div class="hero-copy">
+      <span class="chip">About &amp; changelog</span>
+      <h1>What is this place?</h1>
+      <p class="sub">A playground for the Mistral API — every demo runs server-side so the API key never reaches your browser.</p>
+    </div>
+  </section>
+
+  <section class="panel col" aria-label="Demos and models">
+    <h2>Demos &amp; models</h2>
+    <table>
+      <thead>
+        <tr><th>Demo</th><th>Page</th><th>Models</th><th>What it shows</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>01 · Voxtral</strong></td>
+          <td><a href="/">/</a></td>
+          <td><span class="mono">voxtral-mini-transcribe-3</span><br><span class="mono">mistral-large-4</span></td>
+          <td>Record or upload audio → live transcript → summarise, action items, or translate into 15 languages</td>
+        </tr>
+        <tr>
+          <td><strong>02 · Multimodal</strong></td>
+          <td><a href="/">/</a></td>
+          <td><span class="mono">mistral-large-4</span></td>
+          <td>Image → free-text description, or schema-constrained JSON extraction (receipt / whiteboard / chart / generic image presets)</td>
+        </tr>
+        <tr>
+          <td><strong>03 · Tools &amp; JSON</strong></td>
+          <td><a href="/">/</a></td>
+          <td><span class="mono">mistral-large-4</span></td>
+          <td>Natural language → tool calls executed server-side → final answer, plus strict JSON mode</td>
+        </tr>
+        <tr>
+          <td><strong>Gen-UI</strong></td>
+          <td><a href="/genui">/genui</a></td>
+          <td><span class="mono">mistral-small-2603</span><br><span class="mono">mistral-large-4</span></td>
+          <td>Generative UI: the model composes a live interface in OpenUI Lang (basic) or A2UI v1.0 (advanced), rendered by OpenUI</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel col" aria-label="Token budget">
+    <h2>Token budget (server-side)</h2>
+    <p class="meta" style="margin:0;font-size:15px;line-height:1.6">
+      All API endpoints enforce a daily token cap tracked in <span class="mono">data/usage.json</span>.
+      The default cap is <strong>1,000,000 tokens/day</strong> (1/10 of the subscription's 10M tokens/minute allowance).
+      Per-request output is clamped to <strong>1,500 tokens</strong> by default.
+      When the cap is hit, endpoints return <span class="mono">429</span> with an explanatory message.
+      Check live status at <a href="/api/budget"><span class="mono">GET /api/budget</span></a>.
+    </p>
+    <p class="meta" style="margin:0;font-size:15px">
+      Override via env: <span class="mono">NERGY_DAILY_TOKEN_CAP</span>, <span class="mono">NERGY_MAX_TOKENS</span>.
+    </p>
+  </section>
+
+  <section class="panel col" aria-label="Changelog">
+    <h2>Changelog</h2>
+    <div class="changelog">
+      <div class="cl-entry">
+        <span class="cl-date">2026-06-20</span>
+        <div class="cl-body">Multi-arch GHCR image (linux/amd64 + linux/arm64/v8) for the ARM64 VPS. GitHub Actions workflow builds and pushes on every push to <span class="mono">main</span>.</div>
+      </div>
+      <div class="cl-entry">
+        <span class="cl-date">2026-06-20</span>
+        <div class="cl-body">Gen-UI page: generative UI with OpenUI Lang + A2UI, top-nav, model picker (Small 4 / Large 4), basic and advanced agent integration modes.</div>
+      </div>
+      <div class="cl-entry">
+        <span class="cl-date">2026-06-19</span>
+        <div class="cl-body">Docker base image switched to <span class="mono">node:22-bookworm-slim</span>.</div>
+      </div>
+      <div class="cl-entry">
+        <span class="cl-date">2026-06-19</span>
+        <div class="cl-body">Realtime voice capture fix: AudioWorklet connected to destination via zero-gain node so PCM chunks actually flow.</div>
+      </div>
+      <div class="cl-entry">
+        <span class="cl-date">2026-06-19</span>
+        <div class="cl-body">Realtime dictation with live animated transcript (confirmed + partial + caret) and voice input in the tools tab.</div>
+      </div>
+      <div class="cl-entry">
+        <span class="cl-date">2026-06-18</span>
+        <div class="cl-body">Mobile-friendly layout for small viewports (<span class="mono">max-width: 640px</span>).</div>
+      </div>
+      <div class="cl-entry">
+        <span class="cl-date">2026-06-18</span>
+        <div class="cl-body">More Garfield/lasagna quotes, picked at random. Tab remembered in URL hash (<span class="mono">#voice</span>/<span class="mono">#vision</span>/<span class="mono">#tools</span>).</div>
+      </div>
+      <div class="cl-entry">
+        <span class="cl-date">2026-06-17</span>
+        <div class="cl-body">Initial Le Chonk playground: voice (Voxtral), vision (multimodal), tools &amp; JSON demos, under-the-hood drawer, server-side token budget.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel col" aria-label="Tech stack">
+    <h2>Tech stack</h2>
+    <p class="meta" style="margin:0;font-size:15px;line-height:1.6">
+      Built with <strong>Astro 5 + @astrojs/node</strong> (standalone server output), deployed via Docker / GHCR.
+      All Mistral API calls are proxied through <span class="mono">/api/*</span> endpoints — the API key never reaches the browser.
+      Gen-UI uses <a href="https://www.openui.com/docs" target="_blank" rel="noopener">OpenUI</a> + <span class="mono">@openuidev/a2ui</span>.
+    </p>
+  </section>
+
+  <footer>
+    <span>A playground by <a href="https://github.com/Nergy101" target="_blank" rel="noopener">Nergy</a> · <a href="https://github.com/Nergy101/mistral-playground" target="_blank" rel="noopener">code</a>. No cats were harmed, several were overfed.</span>
+    <div class="ramp" aria-hidden="true">
+      <div style="background:#FFC93C"></div><div style="background:#FFA234"></div><div style="background:#FF8A2A"></div><div style="background:#FA520F"></div><div style="background:#E1330B"></div>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

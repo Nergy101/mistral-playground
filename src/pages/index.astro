@@ -9,6 +9,18 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>mistral.nergy.space — Meet Le Chonk</title>
+<meta name="description" content="Live demos of the Mistral API: Voxtral speech-to-text, multimodal vision, function calling, and generative UI. API keys stay server-side." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://mistral.nergy.space/" />
+<meta property="og:title" content="mistral.nergy.space — Meet Le Chonk" />
+<meta property="og:description" content="Live demos of the Mistral API: Voxtral speech-to-text, multimodal vision, function calling, and generative UI." />
+<meta property="og:image" content="https://mistral.nergy.space/og-image.svg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="mistral.nergy.space — Meet Le Chonk" />
+<meta name="twitter:description" content="Live demos of the Mistral API: Voxtral, multimodal, tools, and Gen-UI." />
+<meta name="twitter:image" content="https://mistral.nergy.space/og-image.svg" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -88,6 +100,11 @@
   pre.out { margin:0; padding:18px; background:var(--code-2); border-radius:14px; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:15px; line-height:1.65; color:var(--text); white-space:pre-wrap; word-break:break-word; }
   :global(.k) { color:#FFB07A; } :global(.s) { color:#B8F2C8; } :global(.n) { color:#8FD3FF; } :global(.b) { color:#FFC93C; }
   .loader-row { display:flex; align-items:center; gap:14px; padding:12px 0; }
+  .skeleton { display:flex; flex-direction:column; gap:10px; padding:4px 0; }
+  .skeleton .sk-line { height:16px; border-radius:8px; background:linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%); background-size:200% 100%; animation:sk-shimmer 1.4s ease-in-out infinite; }
+  .skeleton .sk-line.w60 { width:60%; } .skeleton .sk-line.w80 { width:80%; } .skeleton .sk-line.w90 { width:90%; } .skeleton .sk-line.w40 { width:40%; }
+  .skeleton .sk-block { height:80px; border-radius:12px; background:linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%); background-size:200% 100%; animation:sk-shimmer 1.4s ease-in-out infinite; }
+  @keyframes sk-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   .chonk-loader { display:flex; align-items:flex-end; gap:4px; height:26px; }
   .chonk-loader span { display:block; width:14px; height:14px; animation:chonk-hop .9s ease-in-out infinite; }
   .chonk-loader span:nth-child(1){background:#FFC93C}
@@ -166,15 +183,22 @@
   .hood-col.req { background:var(--code); } .hood-col.res { background:var(--code-2); }
   .hood-col .lbl { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--yellow); }
   .hood-col pre { margin:8px 0 0; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.6; white-space:pre; color:#F2E3CF; }
+  .hood-stats { display:flex; flex-wrap:wrap; gap:10px; padding:14px 22px; border-top:3px solid var(--line); background:var(--code); }
+  .stat-chip { display:flex; flex-direction:column; gap:2px; padding:10px 16px; background:var(--surface-2); border:2px solid var(--line); border-radius:12px; }
+  .stat-chip .stat-val { font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:600; color:var(--yellow); }
+  .stat-chip .stat-lbl { font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); }
 
   footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; align-items:center; font-size:15px; color:var(--muted); }
   .ramp { display:flex; gap:3px; } .ramp div { width:16px; height:16px; }
 
   @media (max-width: 640px) {
     .wrap { padding:20px 14px 48px; gap:20px; }
-    header { gap:10px; }
-    .model-pill { font-size:12px; padding:6px 10px; }
-    .docs-btn { padding:8px 12px; font-size:14px; }
+    header { gap:10px; flex-direction:column; align-items:stretch; }
+    .header-left { justify-content:space-between; }
+    nav[aria-label="Links"] { align-self:flex-end; }
+    .top-nav { flex:1; justify-content:center; }
+    .top-nav a { padding:8px 10px; font-size:14px; flex:1; text-align:center; }
+    .docs-btn { padding:8px 12px; font-size:14px; white-space:nowrap; }
     .hero { padding:24px 20px; border-radius:20px; box-shadow:5px 5px 0 #000; gap:16px; }
     h1 { font-size:clamp(40px, 12vw, 56px); }
     .sub { font-size:17px; }
@@ -190,7 +214,15 @@
     .record-btn { width:84px; height:84px; }
     .hood-body { grid-template-columns:1fr; }
     .hood > button { padding:10px 16px; font-size:16px; }
-    .seg button { padding:0 12px; font-size:14px; }
+    .hood-stats { padding:12px 16px; gap:8px; }
+    .stat-chip { padding:8px 12px; flex:1 1 40%; }
+    .stat-chip .stat-val { font-size:16px; }
+    .seg { flex-wrap:wrap; }
+    .seg button { padding:0 12px; font-size:14px; flex:1; }
+    #toolsSamples { gap:6px; }
+    #toolsSamples .pill { font-size:13px; padding:0 10px; min-height:40px; }
+    .btn, .pill, .seg button, .tab { min-height:44px; }
+    input[type=text], textarea, select { font-size:16px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -215,10 +247,10 @@
       <div class="top-nav" role="navigation" aria-label="Site">
         <a href="/" class="on" aria-current="page">Basics</a>
         <a href="/genui">Gen-UI</a>
+        <a href="/about">About</a>
       </div>
     </div>
     <nav aria-label="Links">
-      <span class="model-pill">Mistral Large 4 · Le Chonk</span>
       <a class="docs-btn" href="https://docs.mistral.ai" target="_blank" rel="noopener">Mistral docs</a>
     </nav>
   </header>
@@ -326,6 +358,9 @@ mistral-large-4</span>
           <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
           <span class="loader-copy">Le Chonk is chewing on it…</span>
         </div>
+        <div class="skeleton" id="voiceSkeleton" style="display:none" aria-hidden="true">
+          <div class="sk-line w90"></div><div class="sk-line w80"></div><div class="sk-line w60"></div>
+        </div>
         <p id="voiceOut" style="margin:0;font-size:17px;line-height:1.55;white-space:pre-line"></p>
       </div>
     </div>
@@ -382,6 +417,9 @@ mistral-large-4</span>
         <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         <span class="loader-copy">Squinting at your image…</span>
       </div>
+      <div class="skeleton" id="visionSkeleton" style="display:none" aria-hidden="true">
+        <div class="sk-line w80"></div><div class="sk-line w90"></div><div class="sk-line w60"></div><div class="sk-line w40"></div>
+      </div>
       <span class="meta">Same image, same model. Flip the toggle to see free text become typed data.</span>
     </div>
   </section>
@@ -413,9 +451,18 @@ mistral-large-4</span>
         </button>
       </div>
       <div class="col" id="chatLog" style="gap:12px"></div>
+      <div class="row" id="toolsSamples" style="gap:8px">
+        <button class="pill" data-sample="What's the weather in Amsterdam right now?">Weather in Amsterdam</button>
+        <button class="pill" data-sample="Calculate 1847 * 293 + 17">Calculate 1847 × 293 + 17</button>
+        <button class="pill" data-sample="Find me wireless headphones under €100">Wireless headphones &lt; €100</button>
+        <button class="pill" data-sample="What's 15% of 340, and the weather in Tokyo?">Two things at once</button>
+      </div>
       <div class="loader-row" id="toolsLoader" role="status" style="display:none">
         <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         <span class="loader-copy">Calling a guy…</span>
+      </div>
+      <div class="skeleton" id="toolsSkeleton" style="display:none" aria-hidden="true">
+        <div class="sk-block"></div><div class="sk-line w80"></div><div class="sk-line w60"></div>
       </div>
       <div id="toolsLive" class="live-transcript" style="display:none;margin-top:4px;font-size:15px;line-height:1.5;color:#F2E3CF;min-height:1.5em"></div>
       <div style="display:flex;gap:10px;margin-top:4px;align-items:center">
@@ -443,6 +490,12 @@ mistral-large-4</span>
       <span class="hood-meta" id="hoodMeta">tokens — · latency — · show</span>
     </button>
     <div class="hood-body" id="hoodBody" style="display:none">
+      <div class="hood-stats" id="hoodStats" style="grid-column:1/-1;display:none">
+        <div class="stat-chip"><span class="stat-val" id="statPrompt">—</span><span class="stat-lbl">Prompt tokens</span></div>
+        <div class="stat-chip"><span class="stat-val" id="statCompletion">—</span><span class="stat-lbl">Completion tokens</span></div>
+        <div class="stat-chip"><span class="stat-val" id="statTotal">—</span><span class="stat-lbl">Total tokens</span></div>
+        <div class="stat-chip"><span class="stat-val" id="statLatency">—</span><span class="stat-lbl">Latency</span></div>
+      </div>
       <div class="hood-col req"><span class="lbl">REQUEST</span><pre id="hoodReq">(run a demo first)</pre></div>
       <div class="hood-col res"><span class="lbl">RESPONSE</span><pre id="hoodRes"></pre></div>
     </div>
@@ -569,12 +622,21 @@ mistral-large-4</span>
   }
   function renderHood() {
     const d = state.debug[state.tab];
-    if (!d) { $('hoodReq').textContent = '(run a demo first)'; $('hoodRes').textContent = ''; $('hoodMeta').textContent = 'tokens — · latency — · ' + ($('hoodBody').style.display === 'none' ? 'show' : 'hide'); return; }
+    if (!d) { $('hoodReq').textContent = '(run a demo first)'; $('hoodRes').textContent = ''; $('hoodMeta').textContent = 'tokens — · latency — · ' + ($('hoodBody').style.display === 'none' ? 'show' : 'hide'); $('hoodStats').style.display = 'none'; return; }
     $('hoodReq').textContent = JSON.stringify(sanitize(d.request), null, 2);
     $('hoodRes').textContent = JSON.stringify(sanitize(d.response), null, 2);
     const u = d.usage;
     const tokens = u ? (u.prompt_tokens ?? 0) + (u.completion_tokens ?? 0) : null;
     $('hoodMeta').textContent = `tokens ${tokens ?? '—'} · latency ${d.latencyMs ?? '—'} ms · ` + ($('hoodBody').style.display === 'none' ? 'show' : 'hide');
+    if (u) {
+      $('hoodStats').style.display = 'flex';
+      $('statPrompt').textContent = String(u.prompt_tokens ?? '—');
+      $('statCompletion').textContent = String(u.completion_tokens ?? '—');
+      $('statTotal').textContent = String(u.total_tokens ?? tokens ?? '—');
+      $('statLatency').textContent = d.latencyMs != null ? `${d.latencyMs} ms` : '—';
+    } else {
+      $('hoodStats').style.display = 'none';
+    }
   }
   $('hoodBtn').addEventListener('click', () => {
     const open = $('hoodBody').style.display === 'none';
@@ -817,6 +879,7 @@ mistral-large-4</span>
     // batch path for uploaded files — no live animation, result lands all at once
     $('voiceErr').textContent = '';
     $('voiceLoader').style.display = 'flex';
+    $('voiceSkeleton').style.display = 'flex';
     $('voiceOut').textContent = '';
     const t = timerEl();
     t.classList.add('busy');
@@ -843,6 +906,7 @@ mistral-large-4</span>
       setRecState('idle');
     } finally {
       $('voiceLoader').style.display = 'none';
+      $('voiceSkeleton').style.display = 'none';
     }
   }
 
@@ -869,6 +933,7 @@ mistral-large-4</span>
   async function runVoiceAction() {
     if (!state.transcript) return;
     $('voiceLoader').style.display = 'flex';
+    $('voiceSkeleton').style.display = 'flex';
     $('voiceOut').textContent = '';
     try {
       const lang = ($('translateLang') as HTMLSelectElement).selectedOptions[0]?.textContent?.trim() || 'Nederlands';
@@ -889,6 +954,7 @@ mistral-large-4</span>
       $('voiceErr').textContent = 'Error: ' + e.message;
     } finally {
       $('voiceLoader').style.display = 'none';
+      $('voiceSkeleton').style.display = 'none';
     }
   }
 
@@ -1036,8 +1102,10 @@ mistral-large-4</span>
       // show the empty schema immediately; loader sits underneath
       $('visionOut').innerHTML = highlight(JSON.stringify(EMPTY_SCHEMAS[state.preset] ?? EMPTY_SCHEMAS.image, null, 2));
       $('visionOut').style.display = 'block';
+      $('visionSkeleton').style.display = 'none';
     } else {
       $('visionOut').style.display = 'none';
+      $('visionSkeleton').style.display = 'flex';
     }
     try {
       const fd = new FormData();
@@ -1073,6 +1141,7 @@ mistral-large-4</span>
     } finally {
       if (myRun === visionRunId) {
         $('visionLoader').style.display = 'none';
+        $('visionSkeleton').style.display = 'none';
         ($('analyzeBtn') as HTMLButtonElement).disabled = false;
       }
     }
@@ -1100,6 +1169,7 @@ mistral-large-4</span>
     log.insertAdjacentHTML('beforeend', `<div class="chat-user"></div>`);
     log.lastElementChild!.textContent = prompt;
     $('toolsLoader').style.display = 'flex';
+    $('toolsSkeleton').style.display = 'flex';
     try {
       const tools = Array.from(document.querySelectorAll('.toolChk:checked')).map((c) => (c as HTMLInputElement).value);
       const res = await fetch('/api/tools', {
@@ -1129,10 +1199,17 @@ mistral-large-4</span>
       $('toolsErr').textContent = 'Error: ' + e.message;
     } finally {
       $('toolsLoader').style.display = 'none';
+      $('toolsSkeleton').style.display = 'none';
     }
   }
   $('toolsSend').addEventListener('click', sendTools);
   $('toolsInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendTools(); });
+  document.querySelectorAll('#toolsSamples .pill').forEach((p) => {
+    p.addEventListener('click', () => {
+      ($('toolsInput') as HTMLInputElement).value = (p as HTMLElement).dataset.sample!;
+      sendTools();
+    });
+  });
 
   // ---------- 03b voice input for tools (voice -> skills) ----------
   // Same realtime pipeline as the Voxtral tab: mic -> PCM chunks -> SSE deltas,

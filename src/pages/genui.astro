@@ -11,6 +11,18 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gen-UI · mistral.nergy.space</title>
+<meta name="description" content="Generative UI with Mistral models and OpenUI Lang — ask in plain words, get a live interface instead of a wall of text." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://mistral.nergy.space/genui" />
+<meta property="og:title" content="Gen-UI · mistral.nergy.space" />
+<meta property="og:description" content="Generative UI with Mistral models and OpenUI Lang + A2UI — ask in plain words, get a live interface." />
+<meta property="og:image" content="https://mistral.nergy.space/og-image.svg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Gen-UI · mistral.nergy.space" />
+<meta name="twitter:description" content="Generative UI with Mistral models and OpenUI Lang + A2UI." />
+<meta name="twitter:image" content="https://mistral.nergy.space/og-image.svg" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -72,6 +84,11 @@
   .tag { font-family:'JetBrains Mono',monospace; font-size:12px; padding:4px 8px; background:var(--yellow); color:var(--ink); border-radius:6px; font-weight:600; }
   pre.out { margin:0; padding:18px; background:var(--code-2); border-radius:14px; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.6; color:#F2E3CF; white-space:pre-wrap; word-break:break-word; }
   .loader-row { display:flex; align-items:center; gap:14px; padding:12px 0; }
+  .skeleton { display:flex; flex-direction:column; gap:10px; padding:4px 0; }
+  .skeleton .sk-line { height:16px; border-radius:8px; background:linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%); background-size:200% 100%; animation:sk-shimmer 1.4s ease-in-out infinite; }
+  .skeleton .sk-line.w60 { width:60%; } .skeleton .sk-line.w80 { width:80%; } .skeleton .sk-line.w90 { width:90%; } .skeleton .sk-line.w40 { width:40%; }
+  .skeleton .sk-block { height:80px; border-radius:12px; background:linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%); background-size:200% 100%; animation:sk-shimmer 1.4s ease-in-out infinite; }
+  @keyframes sk-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   .chonk-loader { display:flex; align-items:flex-end; gap:4px; height:26px; }
   .chonk-loader span { display:block; width:14px; height:14px; animation:chonk-hop .9s ease-in-out infinite; }
   .chonk-loader span:nth-child(1){background:#FFC93C}
@@ -96,17 +113,37 @@
   .hood-col.req { background:var(--code); } .hood-col.res { background:var(--code-2); }
   .hood-col .lbl { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--yellow); }
   .hood-col pre { margin:8px 0 0; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.6; white-space:pre; color:#F2E3CF; }
+  .hood-stats { display:flex; flex-wrap:wrap; gap:10px; padding:14px 22px; border-top:3px solid var(--line); background:var(--code); }
+  .stat-chip { display:flex; flex-direction:column; gap:2px; padding:10px 16px; background:var(--surface-2); border:2px solid var(--line); border-radius:12px; }
+  .stat-chip .stat-val { font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:600; color:var(--yellow); }
+  .stat-chip .stat-lbl { font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); }
 
   footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; align-items:center; font-size:15px; color:var(--muted); }
   .ramp { display:flex; gap:3px; } .ramp div { width:16px; height:16px; }
 
   @media (max-width: 640px) {
     .wrap { padding:20px 14px 48px; gap:20px; }
+    header { gap:10px; flex-direction:column; align-items:stretch; }
+    .header-left { justify-content:space-between; }
+    nav[aria-label="Links"] { align-self:flex-end; }
+    .top-nav { flex:1; justify-content:center; }
+    .top-nav a { padding:8px 10px; font-size:14px; flex:1; text-align:center; }
+    .docs-btn { padding:8px 12px; font-size:14px; white-space:nowrap; }
     .hero { padding:24px 20px; border-radius:20px; box-shadow:5px 5px 0 #000; }
     h1 { font-size:clamp(40px, 12vw, 56px); }
     .sub { font-size:17px; }
     .panel { padding:18px; border-radius:18px; }
-    .seg button { padding:0 12px; font-size:14px; }
+    .seg { flex-wrap:wrap; }
+    .seg button { padding:0 12px; font-size:14px; flex:1; min-height:44px; }
+    .seg button small { font-size:11px; }
+    .row { gap:8px; }
+    .pill { font-size:13px; padding:0 10px; min-height:40px; }
+    .hood-body { grid-template-columns:1fr; }
+    .hood-stats { padding:12px 16px; gap:8px; }
+    .stat-chip { padding:8px 12px; flex:1 1 40%; }
+    .stat-chip .stat-val { font-size:16px; }
+    input[type=text] { font-size:16px; }
+    .btn { min-height:44px; }
   }
 </style>
 </head>
@@ -122,6 +159,7 @@
       <div class="top-nav" role="navigation" aria-label="Site">
         <a href="/">Basics</a>
         <a href="/genui" class="on" aria-current="page">Gen-UI</a>
+        <a href="/about">About</a>
       </div>
     </div>
     <nav aria-label="Links">
@@ -186,6 +224,9 @@
       <div class="chonk-loader" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <span class="loader-copy" id="loaderCopy">Le Chonk is composing your UI…</span>
     </div>
+    <div class="skeleton" id="genSkeleton" style="display:none" aria-hidden="true">
+      <div class="sk-block"></div><div class="sk-line w80"></div><div class="sk-line w60"></div>
+    </div>
     <div id="surface"></div>
   </section>
 
@@ -198,6 +239,12 @@
       <span class="hood-meta" id="hoodMeta">tokens — · latency — · show</span>
     </button>
     <div class="hood-body" id="hoodBody" style="display:none">
+      <div class="hood-stats" id="hoodStats" style="grid-column:1/-1;display:none">
+        <div class="stat-chip"><span class="stat-val" id="statPrompt">—</span><span class="stat-lbl">Prompt tokens</span></div>
+        <div class="stat-chip"><span class="stat-val" id="statCompletion">—</span><span class="stat-lbl">Completion tokens</span></div>
+        <div class="stat-chip"><span class="stat-val" id="statTotal">—</span><span class="stat-lbl">Total tokens</span></div>
+        <div class="stat-chip"><span class="stat-val" id="statLatency">—</span><span class="stat-lbl">Latency</span></div>
+      </div>
       <div class="hood-col req"><span class="lbl">RAW GENERATION (OpenUI Lang / A2UI NDJSON)</span><pre id="hoodRaw">(generate something first)</pre></div>
       <div class="hood-col res"><span class="lbl">API REQUEST / RESPONSE</span><pre id="hoodRes"></pre></div>
     </div>
@@ -377,6 +424,7 @@
     state.busy = true;
     $('genErr').textContent = '';
     $('genLoader').style.display = 'flex';
+    $('genSkeleton').style.display = 'flex';
     $('loaderCopy').textContent = state.mode === 'advanced' ? 'Agent is sending A2UI messages…' : 'Le Chonk is composing your UI…';
     ($('sendBtn') as HTMLButtonElement).disabled = true;
     $('genTag').textContent = `${state.mode === 'advanced' ? 'A2UI' : 'OpenUI Lang'} · ${state.model}`;
@@ -393,6 +441,13 @@
       $('hoodRes').textContent = JSON.stringify({ request: data.debug?.request, usage: data.debug?.usage, latencyMs: data.debug?.latencyMs }, null, 2);
       const u = data.debug?.usage;
       $('hoodMeta').textContent = `tokens ${u ? (u.prompt_tokens ?? 0) + (u.completion_tokens ?? 0) : '—'} · latency ${data.debug?.latencyMs ?? '—'} ms · ${$('hoodBody').style.display === 'none' ? 'show' : 'hide'}`;
+      if (u) {
+        $('hoodStats').style.display = 'flex';
+        $('statPrompt').textContent = String(u.prompt_tokens ?? '—');
+        $('statCompletion').textContent = String(u.completion_tokens ?? '—');
+        $('statTotal').textContent = String(u.total_tokens ?? ((u.prompt_tokens ?? 0) + (u.completion_tokens ?? 0)));
+        $('statLatency').textContent = data.debug?.latencyMs != null ? `${data.debug.latencyMs} ms` : '—';
+      }
       if (data.mode === 'advanced') await playA2UI(data.raw);
       else await playLang(data.raw);
     } catch (e: any) {
@@ -401,6 +456,7 @@
     } finally {
       state.busy = false;
       $('genLoader').style.display = 'none';
+      $('genSkeleton').style.display = 'none';
       ($('sendBtn') as HTMLButtonElement).disabled = false;
     }
   }
@@ -412,6 +468,13 @@
     $('hoodBtn').setAttribute('aria-expanded', String(open));
     const u = state.debug?.usage;
     $('hoodMeta').textContent = `tokens ${u ? (u.prompt_tokens ?? 0) + (u.completion_tokens ?? 0) : '—'} · latency ${state.debug?.latencyMs ?? '—'} ms · ${open ? 'hide' : 'show'}`;
+    if (u) {
+      $('hoodStats').style.display = 'flex';
+      $('statPrompt').textContent = String(u.prompt_tokens ?? '—');
+      $('statCompletion').textContent = String(u.completion_tokens ?? '—');
+      $('statTotal').textContent = String(u.total_tokens ?? ((u.prompt_tokens ?? 0) + (u.completion_tokens ?? 0)));
+      $('statLatency').textContent = state.debug?.latencyMs != null ? `${state.debug.latencyMs} ms` : '—';
+    }
   });
 </script>
 </body>
